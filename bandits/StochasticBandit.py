@@ -1,5 +1,5 @@
 import numpy as np
-import Arms as arms
+from .Arms import Bernoulli
 
 class MAB:
     def __init__(self,arms):
@@ -16,7 +16,7 @@ class MAB:
 
 def BernoulliBandit(means):
     """define a Bernoulli MAB from a vector of means"""
-    return MAB([arms.Bernoulli(p) for p in means])
+    return MAB([Bernoulli(p) for p in means])
 
 def RandomBernoulliBandit(Delta,K):
     """generates a K-armed Bernoulli instance at random where Delta is the gap between the best and second best arm"""
