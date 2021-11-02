@@ -23,10 +23,11 @@ class LTS(object):
         self.features = X
         self.device = X.device
         self.criterion = criterion
-        self.num_iter = num_iter 
-        self.optimizer = LangevinMC(self.model.parameters(), lr=eta, beta=beta, sigma=sigma)
+        self.num_iter = num_iter
+        self.optimizer = LangevinMC(
+            self.model.parameters(), lr=eta, beta=beta, sigma=sigma)
 
-        self.bandit_generator=bandit_generator
+        self.bandit_generator = bandit_generator
         self.itsname = name
 
     def clear(self):
@@ -41,12 +42,13 @@ class LTS(object):
         self.ChosenArms.append(self.features[arm_to_pull].tolist())
         return int(arm_to_pull)
 
-    def receiveReward(self,arm,reward):
+    def receiveReward(self, arm, reward):
         # accumulate reward
         self.rewards.append(reward)
 
         data = torch.tensor(self.ChosenArms, device=self.device)
         true_reward = torch.tensor(self.rewards, device=self.device)
+
         self.model.train()
         for i in range(self.num_iter):
             pred = self.model(data)
@@ -55,6 +57,7 @@ class LTS(object):
             self.model.zero_grad()
             loss.backward()
             self.optimizer.step()
+        res = loss.item()
 
     def update_features(self):
         ''' 
@@ -66,7 +69,7 @@ class LTS(object):
 
     def new_MAB(self):
         self.update_features()
-        bandit = self.bandit_generator(self.features,sigma=self.sigma)
+        bandit = self.bandit_generator(self.features, sigma=self.sigma)
         return bandit
 
     def name(self):
