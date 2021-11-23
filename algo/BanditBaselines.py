@@ -248,9 +248,14 @@ class LinTS:
             self.thetaLS = torch.zeros((self.dimension, 1))
 
     def chooseArmToPlay(self):
+        tol = 1e-12
         with torch.no_grad():
+            if np.linalg.det(self.DesignInv) < tol:
+                cov = self.DesignInv + 0.01 * torch.eye(self.dimension)
+            else:
+                cov = self.DesignInv
             N = torch.distributions.multivariate_normal.MultivariateNormal(
-                self.thetaLS.view(-1), (self.nu*self.nu)*self.DesignInv)
+                self.thetaLS.view(-1), (self.nu*self.nu) * cov)
             theta_tilda = N.sample()
             return torch.argmax(torch.matmul(self.features, theta_tilda)).item()
 

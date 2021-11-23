@@ -34,7 +34,7 @@ data_dir = 'data/'
 
 
 # load the pickle file
-K = [20]
+K = [50]
 d = [10]
 
 for K, d in zip(K, d):

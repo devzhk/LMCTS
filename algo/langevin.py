@@ -20,7 +20,7 @@ class LangevinMC(Optimizer):
     @torch.no_grad()
     def step(self):
         self.curr_step += 1
-        beta = math.sqrt(self.curr_step + 50) * self.beta
+        beta = math.sqrt(self.curr_step + 5) * self.beta
 
         for group in self.param_groups:
             lr = group['lr']
@@ -32,5 +32,5 @@ class LangevinMC(Optimizer):
                         torch.randn(p.shape, device=p.device)
                     delta_p = - lr * p.grad + noise
                     if weight_decay != 0:
-                        delta_p.add_(- p, alpha=weight_decay)
+                        delta_p.add_(- p, alpha=2 * weight_decay)
                     p.add_(delta_p)

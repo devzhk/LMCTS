@@ -20,7 +20,7 @@ def BernoulliBandit(means):
 
 def RandomBernoulliBandit(Delta,K):
     """generates a K-armed Bernoulli instance at random where Delta is the gap between the best and second best arm"""
-    maxMean = Delta + np.random.rand()*(1.-Delta)
+    maxMean = Delta + np.random.rand()*(1-Delta)
     secondmaxMean= maxMean-Delta
     means = secondmaxMean*np.random.random(K)
     bestarm = np.random.randint(0,K)
