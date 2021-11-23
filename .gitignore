@@ -1,5 +1,6 @@
 figs
-__pychache__
-*/__pychache__
+__pycache__
 .vscode
 .idea
+data
+.pyc
