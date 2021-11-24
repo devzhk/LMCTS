@@ -9,7 +9,7 @@ class LangevinMC(Optimizer):
                  lr=0.01,       # learning rate
                  beta=0.01,     # inverse temperature parameter
                  sigma=1.0,     # variance of the Gaussian noise
-                 weight_decay=0.0):   # l2 penalty
+                 weight_decay=1.0):   # l2 penalty
         if lr < 0:
             raise ValueError('lr must be positive')
         self.beta = beta

@@ -1,0 +1,132 @@
+import numpy as np
+from matplotlib import pyplot as plt
+from tqdm import tqdm
+
+'''
+Library enabling to compute regret curves of the strategies in two different cases (the arms are fixed or changing)
+Code inspired by Emilie Kaufmann lab sessions : http://chercheurs.lille.inria.fr/ekaufman/SDM.html 
+'''
+
+
+def OneBanditOneLearnerOneRun(bandit, strategy, timeHorizon, update=False):
+    """
+    Run a bandit strategy (strategy) on a MAB instance (bandit) for (timeHorizon) time steps
+    output : sequence of arms chosen, sequence of rewards obtained
+    When update=True, this method change the arms at each round
+    """
+    selections = []
+    rewards = []
+    best_strategy = []
+    already_visited_means = []
+    strategy.clear()  # reset previous history
+    for t in tqdm(range(timeHorizon)):
+        # choose the next arm to play with the bandit algorithm
+        arm = strategy.chooseArmToPlay()
+        reward = bandit.generateReward(arm)
+        # update the algorithm with the observed reward
+        strategy.receiveReward(arm, reward)
+        # if the arms are fixed
+        if (not update):
+            # store what happened
+            selections.append(arm)
+            rewards.append(reward)
+        # if the arms are changing
+        else:
+            already_visited_means.append(bandit.means[arm])
+            best_strategy.append(max(bandit.means))
+            bandit = strategy.new_MAB()
+
+    # clear_output(wait=True)
+
+    if update:
+        return already_visited_means, best_strategy
+
+    else:
+        return selections, rewards
+
+
+def CumulativeRegret(bandit=None, selections=None, update=False, best_strategy=None, already_visited_means=None):
+    """Compute the pseudo-regret associated to a sequence of arm selections"""
+
+    # if the arms are changing
+    if update:
+        return np.cumsum(np.array(best_strategy) - np.array(already_visited_means))
+    # if the arms stay fixed
+    else:
+        return np.cumsum(max(bandit.means)*np.ones(len(selections)) - np.array(bandit.means)[selections])
+
+
+def OneBanditOneLearnerMultipleRuns(bandit, strategy, timeHorizon, N_exp, tsave=[], update=False):
+    """
+    Perform N_exp runs of a bandit strategy (strategy) on a MAB instance (bandit) for (timeHorizon) time steps 
+    and compute the pseudo-regret of each run 
+    optional : tsave gives a grid of time steps in which the results will be stored (set to 1:timeHorizon by default)
+    output : a table of size N_exp x |tsave| in which each row is the pseudo-regret at the sub-sampled times 
+    """
+    if (len(tsave) == 0):
+        tsave = np.arange(timeHorizon)
+    savedTimes = len(tsave)
+
+    # Store the regret values on different runs
+    Regret = np.zeros((N_exp, savedTimes))
+    for n in range(N_exp):
+        np.random.seed()
+        if not(update):
+            # run the bandit strategy
+            selections, _ = OneBanditOneLearnerOneRun(
+                bandit, strategy, timeHorizon)
+            # compute its pseudo-regret
+            regret_one_run = CumulativeRegret(
+                bandit=bandit, selections=selections)
+        else:
+            # run the bandit strategy
+            already_visited_means, best_strategy = OneBanditOneLearnerOneRun(
+                bandit, strategy, timeHorizon, update=True)
+            # compute its pseudo-regret
+            regret_one_run = CumulativeRegret(
+                already_visited_means=already_visited_means, best_strategy=best_strategy, update=True)
+
+        # store (a sub-sampling of) the cumulative regret
+        Regret[n, :] = np.array(regret_one_run)[tsave]
+
+    return Regret
+
+
+def RunExpes(algorithms, bandit, N_exp, timeHorizon, step=10, quantiles="on", names=[], update=False):
+    """run experiments with multiple algorithms"""
+    tsave = np.arange(1, timeHorizon, step)
+    colors = ["black", "tomato", "cadetblue", "green", "m", "brown"]
+    if (names == []):
+        names = [algo.name() for algo in algorithms]
+    for i in range(len(algorithms)):
+        algo = algorithms[i]
+        Regret = OneBanditOneLearnerMultipleRuns(
+            bandit, algo, timeHorizon, N_exp, tsave, update=update)
+        plt.plot(tsave, np.mean(Regret, 0), linewidth=2.0,
+                 color=colors[i], label="mean regret of " + names[i])
+        if (quantiles == "on"):
+            plt.plot(tsave, np.quantile(Regret, 0.95, 0), tsave, np.quantile(
+                Regret, 0.05, 0), linestyle="dashed", color=colors[i])
+
+    plt.legend()
+    plt.grid()
+
+# To use only if the arms are fixed
+# def multiple_runs(nb_runs,bandit,strategy,horizon=10):
+#     T=horizon
+#     count={}
+
+#     for i in range(nb_runs):
+#         selections,rewards = OneBanditOneLearnerOneRun(bandit,strategy,T)
+
+#         count.setdefault(bandit.arms[selections[-1]],0)
+#         count[bandit.arms[selections[-1]]]+=1
+
+#     most_frequent_arm=max(count, key=count.get)
+
+#     #global results
+#     results=pd.DataFrame()
+#     results['most_frequent_empirical_best_arm']=[most_frequent_arm]
+#     results['real_best_arm']=[bandit.arms[bandit.bestarm]]
+
+#     return results

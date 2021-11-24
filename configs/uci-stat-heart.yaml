@@ -1,0 +1,7 @@
+data:
+  datapath: data/heart.dat
+  num_arm: 2
+  dim_context: 13
+
+train:
+  num_epochs: 20
