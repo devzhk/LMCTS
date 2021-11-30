@@ -4,4 +4,4 @@ data:
   dim_context: 9
 
 train:
-  num_epochs: 1
+  num_epochs: 15000

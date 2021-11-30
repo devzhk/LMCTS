@@ -1,37 +1,39 @@
 import torch
-from tqdm import tqdm
 
-K = 50          # number of arms
-d = 10          # dimensionality of context vectors
-mu = 0.0        # mean of feature vectors
-eps = 0.1      # biggest difference between best arm and worst arm
-data_dir = 'data/'
-
-X = torch.zeros((K, d))
-theta = torch.rand(d)
-X[0] = theta / torch.norm(theta)
-for i in tqdm(range(K - 1)):
-    diff = 1.0
-    while diff > eps:
-        xhat = torch.rand(d)
-        xhat = xhat / torch.norm(xhat)
-        diff = torch.abs(torch.dot(theta, theta) -
-                         torch.dot(xhat, theta)) / torch.norm(theta)
-    X[i+1, :] = xhat
+import yaml
+from argparse import ArgumentParser
 
 
-torch.save(
-    {
-        'X': X,
-        'theta': theta
-    },
-    data_dir + f'linBdata-{eps}.pt'
-)
+def generate(config):
+    num_arm = config['num_arm']
+    dim_context = config['dim_context']
+    theta_norm = config['theta_norm']
+    context_norm = config['context_norm']
+    T = config['T']
+
+    savepath = config['filename'] + \
+        f'{num_arm}-{dim_context}-{theta_norm}-{context_norm}.pt'
+    # generate ground truth theta
+    theta = torch.randn(dim_context)
+    theta = theta / torch.norm(theta) * theta_norm
+    # generate context data
+    context = torch.randn((T, num_arm, dim_context))
+    context = context / torch.norm(context, dim=2, keepdim=True) * context_norm
+
+    torch.save(
+        {
+            'theta': theta,
+            'context': context
+        }, savepath
+    )
+    print('Data saved at {0}'.format(savepath))
 
 
-# TODO:
-# 1. small difference
-# 2. unit ball
-# 3. orthonormal basis
-# 4. update feature set
-# 5. round robin warm up
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('--config_path', type=str,
+                        default='configs/simulation.yaml')
+    args = parser.parse_args()
+    with open(args.config_path, 'r') as stream:
+        config = yaml.load(stream, yaml.FullLoader)
+    generate(config)

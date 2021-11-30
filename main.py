@@ -22,31 +22,32 @@ def run(config, args):
     model = linearNet(config['data']['num_arm'],
                       config['data']['dim_context'])
     # create optimizer
-    optimizer = LangevinMC(model.parameters(), lr=0.005, beta=0.1)
+    optimizer = LangevinMC(model.parameters(), lr=0.005, beta=0.5)
     # Define loss function
     criterion = torch.nn.MSELoss()
     collector = Collector()
     agent = Agent(model, optimizer, criterion, collector, name='LMCTS')
     pbar = range(config['train']['num_epochs'])
+    loader = iter(bandit)
     reward_history = []
-    for e in pbar:
-        for context, label in tqdm(bandit):
-            context = context.to(device)
-            arm_to_pull = agent.choose_arm(context)
-            if label != arm_to_pull:
-                reward = 0
-            else:
-                reward = 1
-            agent.receive_reward(arm_to_pull, context, reward)
-            agent.update_model(num_iter=10)
-            reward_history.append(reward)
+    for e in tqdm(pbar):
+        context, label = next(loader)
+        context = context.to(device)
+        arm_to_pull = agent.choose_arm(context)
+        if label != arm_to_pull:
+            reward = 0
+        else:
+            reward = 1
+        agent.receive_reward(arm_to_pull, context, reward)
+        agent.update_model(num_iter=15)
+        reward_history.append(reward)
         # pbar.set_description(
         #     (
         #         f'Epoch: {e}, accumulated reward: {sum(reward_history)}'
         #         f'Accumulated mean: {np.mean(reward_history)}'
         #     )
         # )
-    df = pd.DataFrame(reward_history)
+    df = pd.DataFrame({'reward': reward_history})
     df.to_csv('log/history.csv')
 
 
