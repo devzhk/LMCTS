@@ -1,0 +1,10 @@
+datapath: data/gaussian50-20-1-1.pt
+
+bandit:
+  num_arm: 50
+  dim_context: 20
+  T: 10000
+  sigma: 1.0
+
+train:
+  num_iter: 10

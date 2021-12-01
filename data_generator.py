@@ -11,8 +11,7 @@ def generate(config):
     context_norm = config['context_norm']
     T = config['T']
 
-    savepath = config['filename'] + \
-        f'{num_arm}-{dim_context}-{theta_norm}-{context_norm}.pt'
+    savepath = config['filename']
     # generate ground truth theta
     theta = torch.randn(dim_context)
     theta = theta / torch.norm(theta) * theta_norm

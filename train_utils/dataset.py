@@ -5,6 +5,18 @@ import torch
 from torch.utils.data import Dataset
 
 
+class SimData(Dataset):
+    def __init__(self, datapath):
+        data = torch.load(datapath)
+        self.context = data['context']
+
+    def __getitem__(self, idx):
+        return self.context[idx]
+
+    def __len__(self):
+        return self.context.shape[0]
+
+
 class UCI(Dataset):
     def __init__(self, datacfg):
         super(UCI, self).__init__()

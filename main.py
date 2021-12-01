@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from models.classifier import linearNet
+from models.classifier import LinearNet
 from algo.langevin import LangevinMC
 from algo.base import Agent
 from train_utils.dataset import UCI, Collector
@@ -19,7 +19,7 @@ def run(config, args):
     dataset = UCI(config['data'])
     bandit = DataLoader(dataset, shuffle=True)
     # Define model
-    model = linearNet(config['data']['num_arm'],
+    model = LinearNet(config['data']['num_arm'],
                       config['data']['dim_context'])
     # create optimizer
     optimizer = LangevinMC(model.parameters(), lr=0.005, beta=0.5)

@@ -14,6 +14,11 @@ During the training, at $t$-th iteration, action set is $X[(t-1)K+1,\ldots, tK; 
 
 Pull the chosen action, and received reward $r_t=\theta^{*\top}X[t_a;:]+\epsilon$, where the noise is sampled from $N(0,\sigma^2)$. 
 
+**Hyperparameter search range**
+- Linear Thompson Sampling: nu constant {1e-4, $1e-3$, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 1e-1}
+- Lagevine Monte Carlo Thompson Sampling: 
+
+
 #### Logistic Bandit
 
 $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
@@ -27,3 +32,15 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 ### Yahoo R6A&B datasets
 
 ### Openbandit dataset
+
+## Data generation and preprocessing 
+
+
+## How to run bandit algorithm
+### Synthetic data
+To run bandit algorithm on synthetic data
+```bash
+python3 run_simulation.py --config_path configs/gaussian_bandit.yaml --algo [name of algorithm]
+```
+
+### UCI datasets

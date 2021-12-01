@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 
-class linearNet(nn.Module):
-    def __init__(self, num_arms, dim_context):
-        super(linearNet, self).__init__()
+class LinearNet(nn.Module):
+    def __init__(self, num_arms, dim_context, norm=False):
+        super(LinearNet, self).__init__()
         self.net = nn.Linear(dim_context, num_arms, bias=False)
 
     def forward(self, x):
