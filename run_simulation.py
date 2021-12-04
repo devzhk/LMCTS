@@ -15,9 +15,20 @@ from algo.baselines import LinTS, FTL
 
 from train_utils.dataset import UCI, Collector, SimData
 from train_utils.bandit import LinearBandit
+try:
+    import wandb
+except ImportError:
+    wandb = None
 
 
 def run(config, args):
+    if args.log and wandb:
+        run = wandb.init(
+            entity='hzzheng',
+            project=config['log']['project'],
+            group=config['log']['group'],
+            config=config)
+
     device = torch.device('cpu')
     # Load dataset
     data = torch.load(config['datapath'])
@@ -28,30 +39,32 @@ def run(config, args):
     num_arm = config['bandit']['num_arm']
 
     dataset = SimData(config['datapath'])
-    loader = DataLoader(dataset, shuffle=True)
+    loader = DataLoader(dataset, shuffle=False)
     loader = iter(loader)
     bandit = LinearBandit(theta=theta, sigma=sigma)
-    print(f'Running {args.algo}')
+    print(config)
     # ------------- create strategy --------------------
-    if args.algo == 'LinTS':
+    algo_name = config['train']['algo']
+    if algo_name == 'LinTS':
         nu = sigma * 0.001 * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0)
-    elif args.algo == 'LMCTS':
+    elif algo_name == 'LMCTS':
         # Define model
         model = LinearNet(1, config['bandit']['dim_context'])
         # create optimizer
-        optimizer = LangevinMC(model.parameters(), lr=0.001,
-                               beta=0.001, weight_decay=1.0)
+        optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
+                               beta=config['train']['beta'], weight_decay=1.0)
         # Define loss function
         criterion = torch.nn.MSELoss()
         collector = Collector()
         agent = SimLMCTS(model, optimizer, criterion, collector, name='LMCTS')
-    elif args.algo == 'FTL':
+    elif algo_name == 'FTL':
         agent = FTL(num_arm)
     # ---------------------------------------------------
     pbar = range(T)
 
     regret_history = []
+    accum_regret = 0
     for e in tqdm(pbar):
         context = next(loader)
         context = context[0].to(device)
@@ -61,23 +74,24 @@ def run(config, args):
         agent.receive_reward(arm_to_pull, context[arm_to_pull], reward)
         agent.update_model(num_iter=config['train']['num_iter'])
         regret_history.append(regret.item())
-        # pbar.set_description(
-        #     (
-        #         f'Epoch: {e}, accumulated reward: {sum(reward_history)}'
-        #         f'Accumulated mean: {np.mean(reward_history)}'
-        #     )
-        # )
+        accum_regret += regret.item()
+        if wandb and args.log:
+            wandb.log(
+                {
+                    'Regret': accum_regret
+                }
+            )
     df = pd.DataFrame({'regret': regret_history,
                        'Step': np.arange(config['bandit']['T'])}
                       )
-    df.to_csv(f'log/{args.algo}-regrets.csv')
+    df.to_csv(f'log/{algo_name}-regrets-5020.csv')
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/gauss_bandit.yaml')
-    parser.add_argument('--algo', type=str, default='LMCTS')
+    parser.add_argument('--log', action='store_true', default=True)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)

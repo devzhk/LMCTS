@@ -13,6 +13,7 @@ class LinearBandit(object):
             - arm: int
         Return: 
             - reward: scalar
+            - regret: expected regret
 
         '''
         prod = X @ self.theta

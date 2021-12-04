@@ -16,7 +16,7 @@ Pull the chosen action, and received reward $r_t=\theta^{*\top}X[t_a;:]+\epsilon
 
 **Hyperparameter search range**
 - Linear Thompson Sampling: nu constant {1e-4, $1e-3$, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 1e-1}
-- Lagevine Monte Carlo Thompson Sampling: 
+- Lagevine Monte Carlo Thompson Sampling: lr: {0.1, 0.01, 0.005, 0.001}, beta: {1.0, 0.5, 0.1, 0.05, 0.01, 0.001}, num_iter {1, 10, 15}.
 
 
 #### Logistic Bandit
@@ -44,3 +44,8 @@ python3 run_simulation.py --config_path configs/gaussian_bandit.yaml --algo [nam
 ```
 
 ### UCI datasets
+
+
+### TODO:
+1. LMC adaptive learning rate
+2.  

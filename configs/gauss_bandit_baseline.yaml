@@ -4,7 +4,7 @@ bandit:
   num_arm: 50
   dim_context: 20
   T: 1000
-  sigma: 0.01
+  sigma: 0.1
 
 train:
   algo: LMCTS
@@ -14,4 +14,4 @@ train:
 
 log:
   project: ContextualBandit
-  group: LMCTS-sim
+  group: LMCTS-sim-01

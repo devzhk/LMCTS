@@ -5,10 +5,10 @@ from torch.optim import Optimizer
 
 class LangevinMC(Optimizer):
     def __init__(self,
-                 params,        # parameters of the model
-                 lr=0.01,       # learning rate
-                 beta=0.01,     # inverse temperature parameter
-                 sigma=1.0,     # variance of the Gaussian noise
+                 params,              # parameters of the model
+                 lr=0.01,             # learning rate
+                 beta=0.01,           # inverse temperature parameter
+                 sigma=1.0,           # variance of the Gaussian noise
                  weight_decay=1.0):   # l2 penalty
         if lr < 0:
             raise ValueError('lr must be positive')
@@ -20,8 +20,9 @@ class LangevinMC(Optimizer):
     @torch.no_grad()
     def step(self):
         self.curr_step += 1
-        beta = math.sqrt(self.curr_step + 5) * self.beta
-
+        # beta = \sqrt
+        # beta = 1 / math.log(self.curr_step + 1) * self.beta
+        beta = self.beta
         for group in self.param_groups:
             lr = group['lr']
             sigma = group['sigma']

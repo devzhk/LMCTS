@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 class _agent(object):
@@ -8,13 +9,13 @@ class _agent(object):
     def clear(self):
         raise NotImplementedError
 
-    def choose_arm(self):
+    def choose_arm(self, context):
         raise NotImplementedError
 
-    def receive_reward(self):
+    def receive_reward(self, arm, context, reward):
         raise NotImplementedError
 
-    def update_model(self):
+    def update_model(self, num_iter):
         raise NotImplementedError
 
 
@@ -71,10 +72,13 @@ class SimLMCTS(_agent):
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
+        self.step = 0
+        self.beta = optimizer.beta
 
     def clear(self):
         self.model.init_weights()
         self.collector.clear()
+        self.step = 0
 
     def choose_arm(self, context):
         with torch.no_grad():
@@ -86,10 +90,13 @@ class SimLMCTS(_agent):
         self.collector.collect_data(context, arm, reward)
 
     def update_model(self, num_iter=5):
+        self.step += 1
+        self.optimizer.__setstate__({'lr': 1 / np.sqrt(self.step + 1)})
+        self.optimizer.beta = 1 / np.log2(self.step + 2) * self.beta
+
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.stack(contexts, dim=0)
         rewards = torch.tensor(rewards, dtype=torch.float32)
-        idx = torch.tensor(arms).unsqueeze(1)
         # TODO: adapt code for minibatch training
         self.model.train()
         for i in range(num_iter):
@@ -98,3 +105,5 @@ class SimLMCTS(_agent):
             loss = self.criterion(pred, rewards)
             loss.backward()
             self.optimizer.step()
+        # noise =
+        # self.model.fc.weight.data.add_()
