@@ -8,10 +8,10 @@ bandit:
 
 train:
   algo: LMCTS
-  num_iter: 100
-  beta: 0.01
-  lr: 0.1
+  num_iter: 20
+  beta: 0.0001
+  lr: 0.005
 
 log:
   project: ContextualBandit
-  group: LMCTS-sim
+  group: LMCTS-sim-tuning

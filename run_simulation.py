@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 
 import torch
+from torch.optim import SGD
 from torch.utils.data import DataLoader
 
 from models.classifier import LinearNet
@@ -49,11 +50,15 @@ def run(config, args):
         nu = sigma * 0.001 * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0)
     elif algo_name == 'LMCTS':
+        beta_inv = 4 * config['train']['beta'] * \
+            np.sqrt(3 * dim_context * np.log(T) + 2)
         # Define model
         model = LinearNet(1, config['bandit']['dim_context'])
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
-                               beta=config['train']['beta'], weight_decay=1.0)
+                               beta_inv=beta_inv, weight_decay=1.0)
+        optimizer = SGD(model.parameters(),
+                        lr=config['train']['lr'], weight_decay=1.0)
         # Define loss function
         criterion = torch.nn.MSELoss()
         collector = Collector()
@@ -91,7 +96,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/gauss_bandit.yaml')
-    parser.add_argument('--log', action='store_true', default=True)
+    parser.add_argument('--log', action='store_true', default=False)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)

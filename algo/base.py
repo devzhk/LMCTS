@@ -73,7 +73,7 @@ class SimLMCTS(_agent):
         self.criterion = criterion
         self.collector = collector
         self.step = 0
-        self.beta = optimizer.beta
+        # self.beta_inv = optimizer.beta_inv
 
     def clear(self):
         self.model.init_weights()
@@ -91,8 +91,8 @@ class SimLMCTS(_agent):
 
     def update_model(self, num_iter=5):
         self.step += 1
-        self.optimizer.__setstate__({'lr': 1 / np.sqrt(self.step + 1)})
-        self.optimizer.beta = 1 / np.log2(self.step + 2) * self.beta
+        # self.optimizer.__setstate__({'lr': 1 / np.sqrt(self.step + 1)})
+        # self.optimizer.beta = 1 / np.log2(self.step + 2) * self.beta
 
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.stack(contexts, dim=0)
