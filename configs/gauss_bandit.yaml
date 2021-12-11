@@ -3,15 +3,15 @@ datapath: data/gaussian50-20-1-1.pt
 bandit:
   num_arm: 50
   dim_context: 20
-  T: 1000
-  sigma: 0.01
+  T: 10000
+  sigma: 0.1
 
 train:
   algo: LMCTS
-  num_iter: 20
-  beta: 0.0001
-  lr: 0.005
+  num_iter: 30
+  beta_inv: 0.02
+  lr: 0.02
 
 log:
   project: ContextualBandit
-  group: LMCTS-sim-tuning
+  group: LMCTS-0.6noise-sim-01

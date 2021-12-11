@@ -50,17 +50,18 @@ def run(config, args):
         nu = sigma * 0.001 * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0)
     elif algo_name == 'LMCTS':
-        beta_inv = 4 * config['train']['beta'] * \
-            np.sqrt(3 * dim_context * np.log(T) + 2)
+        beta_inv = config['train']['beta_inv'] * dim_context * np.log(T)
+
+        print(f'Beta inverse: {beta_inv}')
         # Define model
         model = LinearNet(1, config['bandit']['dim_context'])
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
                                beta_inv=beta_inv, weight_decay=1.0)
-        optimizer = SGD(model.parameters(),
-                        lr=config['train']['lr'], weight_decay=1.0)
+        # optimizer = SGD(model.parameters(),
+        # lr=config['train']['lr'], weight_decay=1.0)
         # Define loss function
-        criterion = torch.nn.MSELoss()
+        criterion = torch.nn.MSELoss(reduction='sum')
         collector = Collector()
         agent = SimLMCTS(model, optimizer, criterion, collector, name='LMCTS')
     elif algo_name == 'FTL':
@@ -77,7 +78,7 @@ def run(config, args):
 
         reward, regret = bandit.get_reward(context, arm_to_pull)
         agent.receive_reward(arm_to_pull, context[arm_to_pull], reward)
-        agent.update_model(num_iter=config['train']['num_iter'])
+        agent.update_model(num_iter=min(e//2 + 1, config['train']['num_iter']))
         regret_history.append(regret.item())
         accum_regret += regret.item()
         if wandb and args.log:
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/gauss_bandit.yaml')
-    parser.add_argument('--log', action='store_true', default=False)
+    parser.add_argument('--log', action='store_true', default=True)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)

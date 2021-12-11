@@ -31,7 +31,7 @@ class LangevinMC(Optimizer):
                 if p.grad is not None:
                     noise = math.sqrt(2 * lr * beta_inv) * sigma * \
                         torch.randn(p.shape, device=p.device)
-                    delta_p = - lr * p.grad
+                    delta_p = p.grad
                     if weight_decay != 0:
-                        delta_p.add_(- p, alpha=2 * weight_decay)
-                    p.add_(delta_p)
+                        delta_p = delta_p.add(p, alpha=weight_decay)
+                    p.add_(delta_p, alpha=-lr)
