@@ -4,14 +4,14 @@ bandit:
   num_arm: 50
   dim_context: 20
   T: 10000
-  sigma: 0.1
+  sigma: 0.5
 
 train:
-  algo: LMCTS
-  num_iter: 30
-  beta_inv: 0.02
-  lr: 0.02
+  algo: LinTS
+  num_iter: 50
+  beta_inv: 0.00001
+  lr: 0.01
 
 log:
-  project: ContextualBandit
-  group: LMCTS-0.6noise-sim-01
+  project: ContextualBandit-simulation
+  group: LMCTS-01

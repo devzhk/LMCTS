@@ -6,6 +6,7 @@ import numpy as np
 
 import torch
 from torch.optim import SGD
+from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
 from models.classifier import LinearNet
@@ -44,10 +45,10 @@ def run(config, args):
     loader = iter(loader)
     bandit = LinearBandit(theta=theta, sigma=sigma)
     print(config)
-    # ------------- create strategy --------------------
+    # ------------- construct strategy --------------------
     algo_name = config['train']['algo']
     if algo_name == 'LinTS':
-        nu = sigma * 0.001 * np.sqrt(dim_context * np.log(T))
+        nu = sigma * 0.01 * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0)
     elif algo_name == 'LMCTS':
         beta_inv = config['train']['beta_inv'] * dim_context * np.log(T)
@@ -57,13 +58,22 @@ def run(config, args):
         model = LinearNet(1, config['bandit']['dim_context'])
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
-                               beta_inv=beta_inv, weight_decay=1.0)
+                               beta_inv=beta_inv, weight_decay=2.0)
+
+        # def lmc_func(x):
+        #     if x > 100 and x % 300 == 0:
+        #         return config['train']['lr'] / x
+        #     else:
+        #         return config['train']['lr']
+        # scheduler = LambdaLR(optimizer, lr_lambda=lmc_func)
         # optimizer = SGD(model.parameters(),
-        # lr=config['train']['lr'], weight_decay=1.0)
+        #                 lr=config['train']['lr'], weight_decay=1.0)
         # Define loss function
         criterion = torch.nn.MSELoss(reduction='sum')
         collector = Collector()
-        agent = SimLMCTS(model, optimizer, criterion, collector, name='LMCTS')
+        agent = SimLMCTS(model, optimizer, criterion,
+                         collector,
+                         name='LMCTS')
     elif algo_name == 'FTL':
         agent = FTL(num_arm)
     # ---------------------------------------------------
@@ -75,10 +85,9 @@ def run(config, args):
         context = next(loader)
         context = context[0].to(device)
         arm_to_pull = agent.choose_arm(context)
-
         reward, regret = bandit.get_reward(context, arm_to_pull)
         agent.receive_reward(arm_to_pull, context[arm_to_pull], reward)
-        agent.update_model(num_iter=min(e//2 + 1, config['train']['num_iter']))
+        agent.update_model(num_iter=min(e + 1, config['train']['num_iter']))
         regret_history.append(regret.item())
         accum_regret += regret.item()
         if wandb and args.log:

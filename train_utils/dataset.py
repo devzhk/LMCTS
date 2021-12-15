@@ -18,9 +18,9 @@ class SimData(Dataset):
 
 
 class UCI(Dataset):
-    def __init__(self, datacfg):
+    def __init__(self, datapath, dim_context):
         super(UCI, self).__init__()
-        self.loaddata(datacfg)
+        self.loaddata(datapath, dim_context)
 
     def __getitem__(self, idx):
         return self.context[idx], self.label[idx]
@@ -28,11 +28,11 @@ class UCI(Dataset):
     def __len__(self):
         return self.label.shape[0]
 
-    def loaddata(self, cfg):
-        data = np.loadtxt(cfg['datapath'])
+    def loaddata(self, datapath, dim_context):
+        data = np.loadtxt(datapath)
         self.label = (data[:, -1] - 1).astype(int)
         # data preprocessing
-        context = data[:, 0:cfg['dim_context']].astype(np.float32)
+        context = data[:, 0:dim_context].astype(np.float32)
         # context = context - context.mean(axis=0, keepdims=True)
         self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
 

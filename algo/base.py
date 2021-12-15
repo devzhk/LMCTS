@@ -24,16 +24,21 @@ class Agent(_agent):
                  optimizer,
                  criterion,
                  collector,
+                 scheduler=None,
                  name='default'):
         super(Agent, self).__init__(name)
         self.model = model
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.criterion = criterion
         self.collector = collector
+        self.base_lr = optimizer.lr
+        self.step = 0
 
     def clear(self):
         self.model.init_weights()
         self.collector.clear()
+        self.step = 0
 
     def choose_arm(self, context):
         with torch.no_grad():
@@ -45,6 +50,10 @@ class Agent(_agent):
         self.collector.collect_data(context, arm, reward)
 
     def update_model(self, num_iter=5):
+        self.step += 1
+        # if self.step % 200 == 0:
+        #     self.optimizer.lr = self.base_lr / np.sqrt(self.step)
+
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.cat(contexts)
         rewards = torch.tensor(rewards, dtype=torch.float32)
@@ -65,6 +74,7 @@ class SimLMCTS(_agent):
                  optimizer,
                  criterion,
                  collector,
+                 scheduler=None,
                  name='default'):
         super(SimLMCTS, self).__init__(name)
 
@@ -72,7 +82,9 @@ class SimLMCTS(_agent):
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
+        self.scheduler = scheduler
         self.step = 0
+        self.base_lr = optimizer.lr
         # self.beta_inv = optimizer.beta_inv
 
     def clear(self):
@@ -91,7 +103,9 @@ class SimLMCTS(_agent):
 
     def update_model(self, num_iter=5):
         self.step += 1
-        self.optimizer.__setstate__({'lr': 0.04 / np.sqrt(self.step + 1)})
+        # self.optimizer.lr = 0.01 / np.sqrt(self.step)
+        if self.step % 200 == 0:
+            self.optimizer.lr = self.base_lr / self.step
         # self.optimizer.beta_inv = np.log2(self.step + 2) * self.beta_inv
 
         contexts, arms, rewards = self.collector.fetch_batch()
@@ -105,5 +119,5 @@ class SimLMCTS(_agent):
             loss = self.criterion(pred, rewards)
             loss.backward()
             self.optimizer.step()
-        # noise =
-        # self.model.fc.weight.data.add_()
+        # if self.scheduler:
+        #     self.scheduler.step()

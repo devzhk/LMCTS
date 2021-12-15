@@ -29,6 +29,10 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 3. Magic
 4. Mushroom
 
+statlog: 
+- LMCTS: lr
+
+
 ### Yahoo R6A&B datasets
 
 ### Openbandit dataset

@@ -1,7 +1,16 @@
-data:
-  datapath: data/shuttle.trn
+datapath: data/shuttle.trn
+
+bandit:
   num_arm: 7
   dim_context: 9
+  T: 10000
 
 train:
-  num_epochs: 15000
+  algo: LMCTS
+  num_iter: 50
+  beta_inv: 0.0001
+  lr: 0.001
+
+log:
+  project: ContextualBandit-UCI
+  group: LMCTS-test
