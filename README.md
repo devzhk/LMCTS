@@ -30,7 +30,8 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 4. Mushroom
 
 statlog: 
-- LMCTS: lr
+- LMCTS: lr {}
+- LinTS: nu {0.1, 0.01, 0.02, 0.001}
 
 
 ### Yahoo R6A&B datasets
@@ -51,5 +52,12 @@ python3 run_simulation.py --config_path configs/gaussian_bandit.yaml --algo [nam
 
 
 ### TODO:
-1. LMC adaptive learning rate
-2.  
+1. Squared reward (linear vs neural network)
+2. Hyperparameter tuning for linear bandit
+3. Repeated runs
+4. Neural network for classfication (linear vs neural network)
+   
+Baseline: 
+1. Neural Thompson Sampling
+2. Neural UCB
+3. LinTS

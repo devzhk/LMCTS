@@ -5,9 +5,11 @@ bandit:
   dim_context: 20
   T: 10000
   sigma: 0.5
+  func: linear
 
 train:
-  algo: LinTS
+  algo: LMCTS
+  model: linear
   num_iter: 50
   beta_inv: 0.00001
   lr: 0.01

@@ -75,6 +75,7 @@ class SimLMCTS(_agent):
                  criterion,
                  collector,
                  scheduler=None,
+                 device='cpu',
                  name='default'):
         super(SimLMCTS, self).__init__(name)
 
@@ -85,6 +86,7 @@ class SimLMCTS(_agent):
         self.scheduler = scheduler
         self.step = 0
         self.base_lr = optimizer.lr
+        self.device = device
         # self.beta_inv = optimizer.beta_inv
 
     def clear(self):
@@ -103,14 +105,13 @@ class SimLMCTS(_agent):
 
     def update_model(self, num_iter=5):
         self.step += 1
-        # self.optimizer.lr = 0.01 / np.sqrt(self.step)
-        if self.step % 200 == 0:
+        # self.optimizer.lr = self.base_lr / num_iter
+        if self.step % 20 == 0:
             self.optimizer.lr = self.base_lr / self.step
-        # self.optimizer.beta_inv = np.log2(self.step + 2) * self.beta_inv
 
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.stack(contexts, dim=0)
-        rewards = torch.tensor(rewards, dtype=torch.float32)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
         # TODO: adapt code for minibatch training
         self.model.train()
         for i in range(num_iter):
@@ -119,5 +120,6 @@ class SimLMCTS(_agent):
             loss = self.criterion(pred, rewards)
             loss.backward()
             self.optimizer.step()
+        assert not torch.isnan(loss), "loss is Nan"
         # if self.scheduler:
         #     self.scheduler.step()

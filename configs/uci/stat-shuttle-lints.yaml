@@ -1,0 +1,15 @@
+datapath: data/shuttle.trn
+
+bandit:
+  num_arm: 7
+  dim_context: 9
+  T: 10000
+
+train:
+  algo: LinTS
+  nu: 0.01
+  num_iter: 50
+
+log:
+  project: ContextualBandit-UCI
+  group: LinTS-test

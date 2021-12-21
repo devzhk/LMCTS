@@ -9,14 +9,14 @@ from torch.optim import SGD
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
-from models.classifier import LinearNet
+from models.classifier import LinearNet, FCN
 from algo.langevin import LangevinMC
 
 from algo.base import SimLMCTS
 from algo.baselines import LinTS, FTL
 
-from train_utils.dataset import UCI, Collector, SimData
-from train_utils.bandit import LinearBandit
+from train_utils.dataset import Collector, SimData
+from train_utils.bandit import LinearBandit, QuadBandit
 try:
     import wandb
 except ImportError:
@@ -31,10 +31,10 @@ def run(config, args):
             group=config['log']['group'],
             config=config)
 
-    device = torch.device('cpu')
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # Load dataset
     data = torch.load(config['datapath'])
-    theta = data['theta']
+    theta = data['theta'].to(device)
     sigma = config['bandit']['sigma']
     T = config['bandit']['T']
     dim_context = config['bandit']['dim_context']
@@ -43,7 +43,12 @@ def run(config, args):
     dataset = SimData(config['datapath'])
     loader = DataLoader(dataset, shuffle=False)
     loader = iter(loader)
-    bandit = LinearBandit(theta=theta, sigma=sigma)
+    if config['bandit']['func'] == 'linear':
+        bandit = LinearBandit(theta=theta, sigma=sigma)
+    elif config['bandit']['func'] == 'quad':
+        bandit = QuadBandit(theta=theta, sigma=sigma)
+    else:
+        raise ValueError('Only linear or quadratic function')
     print(config)
     # ------------- construct strategy --------------------
     algo_name = config['train']['algo']
@@ -55,7 +60,12 @@ def run(config, args):
 
         print(f'Beta inverse: {beta_inv}')
         # Define model
-        model = LinearNet(1, config['bandit']['dim_context'])
+        if config['train']['model'] == 'linear':
+            model = LinearNet(1, dim_context)
+        elif config['train']['model'] == 'neural':
+            model = FCN(1, dim_context,
+                        layers=config['train']['layers'])
+        model = model.to(device)
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
                                beta_inv=beta_inv, weight_decay=2.0)
@@ -73,15 +83,16 @@ def run(config, args):
         collector = Collector()
         agent = SimLMCTS(model, optimizer, criterion,
                          collector,
-                         name='LMCTS')
+                         name='LMCTS',
+                         device=device)
     elif algo_name == 'FTL':
         agent = FTL(num_arm)
     # ---------------------------------------------------
-    pbar = range(T)
+    pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)
 
     regret_history = []
     accum_regret = 0
-    for e in tqdm(pbar):
+    for e in pbar:
         context = next(loader)
         context = context[0].to(device)
         arm_to_pull = agent.choose_arm(context)
@@ -90,6 +101,12 @@ def run(config, args):
         agent.update_model(num_iter=min(e + 1, config['train']['num_iter']))
         regret_history.append(regret.item())
         accum_regret += regret.item()
+
+        pbar.set_description(
+            (
+                f'Accumulative regret: {accum_regret}'
+            )
+        )
         if wandb and args.log:
             wandb.log(
                 {
@@ -105,8 +122,8 @@ def run(config, args):
 if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
-                        default='configs/gauss_bandit.yaml')
-    parser.add_argument('--log', action='store_true', default=True)
+                        default='configs/simulation/gauss_bandit-quad.yaml')
+    parser.add_argument('--log', action='store_true', default=False)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)

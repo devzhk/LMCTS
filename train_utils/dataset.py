@@ -18,12 +18,18 @@ class SimData(Dataset):
 
 
 class UCI(Dataset):
-    def __init__(self, datapath, dim_context):
+    def __init__(self, datapath, dim_context, num_arms=2):
         super(UCI, self).__init__()
+        self.dim_context = dim_context
+        self.num_arms = num_arms
         self.loaddata(datapath, dim_context)
 
     def __getitem__(self, idx):
-        return self.context[idx], self.label[idx]
+        x = self.context[idx]
+        cxt = torch.zeros((self.num_arms, self.dim_context * self.num_arms))
+        for i in range(self.num_arms):
+            cxt[i, i * self.dim_context: (i + 1) * self.dim_context] = x
+        return cxt, self.label[idx]
 
     def __len__(self):
         return self.label.shape[0]
@@ -35,6 +41,7 @@ class UCI(Dataset):
         context = data[:, 0:dim_context].astype(np.float32)
         # context = context - context.mean(axis=0, keepdims=True)
         self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
+        self.context = torch.tensor(self.context)
 
 
 class Collector(Dataset):
