@@ -8,13 +8,11 @@ bandit:
   func: quad
 
 train:
-  algo: LMCTS
-  model: neural
-  layers: [20, 20, 20, 20]
-  num_iter: 50
-  beta_inv: 0.001
-  lr: 0.01
+  algo: LinTS
+  model: linear
+  num_iter: 1
+  nu: 0.05
 
 log:
   project: ContextualBandit-simulation
-  group: LMCTS-quad
+  group: LinTS-quad

@@ -45,7 +45,7 @@ statlog:
 ### Synthetic data
 To run bandit algorithm on synthetic data
 ```bash
-python3 run_simulation.py --config_path configs/gaussian_bandit.yaml --algo [name of algorithm]
+python3 run_simulation.py --config_path configs/gaussian_bandit.yaml 
 ```
 
 ### UCI datasets
