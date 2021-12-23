@@ -52,12 +52,17 @@ python3 run_simulation.py --config_path configs/gaussian_bandit.yaml
 
 
 ### TODO:
-1. Squared reward (linear vs neural network)
-2. Hyperparameter tuning for linear bandit
-3. Repeated runs
-4. Neural network for classfication (linear vs neural network)
-   
+- [ ] Squared reward (linear vs neural network)
+- [ ] Hyperparameter tuning for linear bandit 
+- [ ] Neural network for classfication (linear vs neural network)
+- [ ] ablation study on linear bandit setting
+- [ ] update results in fixed arm setting
+- [ ] profile the computation cost of arm selection and inner loop update
+
 Baseline: 
-1. Neural Thompson Sampling
-2. Neural UCB
-3. LinTS
+- [ ] Neural Thompson Sampling
+- [ ] Neural UCB
+- [x] LinTS
+- [ ] Neural linear
+- [ ] Neural greedy
+- [ ] Neural epsilon-greedy
