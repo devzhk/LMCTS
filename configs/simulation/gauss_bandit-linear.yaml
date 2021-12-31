@@ -1,19 +1,18 @@
 datapath: data/gaussian50-20-1-1.pt
+# bandit
+num_arm: 50
+dim_context: 20
+T: 10000
+sigma: 0.5
+func: linear
 
-bandit:
-  num_arm: 50
-  dim_context: 20
-  T: 10000
-  sigma: 0.5
-  func: linear
+# train
+algo: LMCTS
+model: linear
+num_iter: 30
+beta_inv: 0.00001
+lr: 0.1
 
-train:
-  algo: LMCTS
-  model: linear
-  num_iter: 50
-  beta_inv: 0.00001
-  lr: 0.01
-
-log:
-  project: ContextualBandit-simulation
-  group: LMCTS-01
+# log
+project: ContextualBandit-simulation
+group: LMCTS-01

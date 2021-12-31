@@ -26,10 +26,24 @@ class LinearNet(nn.Module):
 
 
 class FCN(nn.Module):
-    def __init__(self, num_arms, dim_context, layers=None, norm=False):
+    def __init__(self, num_arms, dim_context, layers=None,
+                 act='LeakyReLU',
+                 norm=False):
         super(FCN, self).__init__()
+
         self.norm = nn.LayerNorm(
             dim_context, elementwise_affine=False) if norm else None
+
+        self.act_dict = nn.ModuleDict(
+            {
+                'LeakyReLU': nn.LeakyReLU(),
+                'ReLU': nn.ReLU(),
+                'tanh': nn.Tanh(),
+                'elu': nn.ELU(),
+                'selu': nn.SELU(),
+                'glu': nn.GELU()
+            }
+        )
 
         if layers is None:
             layers = [dim_context, 50]
@@ -39,7 +53,7 @@ class FCN(nn.Module):
         for in_size, out_size in zip(layers, layers[1:]):
             network += [
                 nn.Linear(in_size, out_size, bias=True),
-                nn.LeakyReLU()
+                self.act_dict[act]
             ]
         network += [nn.Linear(layers[-1], num_arms, bias=False)]
         self.net = nn.Sequential(*network)

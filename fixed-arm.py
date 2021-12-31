@@ -1,6 +1,5 @@
 import math
 import yaml
-from threading import main_thread
 from tqdm import tqdm
 import numpy as np
 from argparse import ArgumentParser
@@ -13,7 +12,7 @@ from bandits.BanditGenerator import SinBandit, ExpBandit, LinearBandit
 from train_utils.Experiments import RunExpes
 from algo.BanditBaselines import FTL, UCB, LinUCB, LinTS
 
-from algo.LTS import LTS
+from algo.lmcts import LTS
 from models import LinearModel
 
 torch.manual_seed(2)

@@ -58,6 +58,7 @@ python3 run_simulation.py --config_path configs/gaussian_bandit.yaml
 - [ ] ablation study on linear bandit setting
 - [ ] update results in fixed arm setting
 - [ ] profile the computation cost of arm selection and inner loop update
+- [ ] 
 
 Baseline: 
 - [ ] Neural Thompson Sampling

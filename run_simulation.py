@@ -5,13 +5,12 @@ import pandas as pd
 import numpy as np
 
 import torch
-from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
 from models.classifier import LinearNet, FCN
 from algo.langevin import LangevinMC
 
-from algo.base import SimLMCTS
+from algo import LMCTS
 from algo.baselines import LinTS, FTL
 
 from train_utils.dataset import Collector, SimData
@@ -24,63 +23,57 @@ except ImportError:
 
 def run(config, args):
     if args.log and wandb:
+        group = config['group'] if 'group' in config else None
         run = wandb.init(
             entity='hzzheng',
-            project=config['log']['project'],
-            group=config['log']['group'],
+            project=config['project'],
+            group=group,
             config=config)
+        config = wandb.config
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    # Load dataset
+    # Parse argument
     data = torch.load(config['datapath'])
     theta = data['theta'].to(device)
-    sigma = config['bandit']['sigma']
-    T = config['bandit']['T']
-    dim_context = config['bandit']['dim_context']
-    num_arm = config['bandit']['num_arm']
+    sigma = config['sigma']
+    T = config['T']
+    dim_context = config['dim_context']
+    num_arm = config['num_arm']
 
+    # Create dataset
     dataset = SimData(config['datapath'])
     loader = DataLoader(dataset, shuffle=False)
     loader = iter(loader)
-    if config['bandit']['func'] == 'linear':
+    if config['func'] == 'linear':
         bandit = LinearBandit(theta=theta, sigma=sigma)
-    elif config['bandit']['func'] == 'quad':
+    elif config['func'] == 'quad':
         bandit = QuadBandit(theta=theta, sigma=sigma)
     else:
         raise ValueError('Only linear or quadratic function')
     print(config)
     # ------------- construct strategy --------------------
-    algo_name = config['train']['algo']
+    algo_name = config['algo']
     if algo_name == 'LinTS':
-        nu = sigma * config['train']['nu'] * np.sqrt(dim_context * np.log(T))
-        agent = LinTS(num_arm, dim_context, nu, reg=1.0)
+        nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
+        agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
     elif algo_name == 'LMCTS':
-        beta_inv = config['train']['beta_inv'] * dim_context * np.log(T)
+        beta_inv = config['beta_inv'] * dim_context * np.log(T)
 
         print(f'Beta inverse: {beta_inv}')
         # Define model
-        if config['train']['model'] == 'linear':
+        if config['model'] == 'linear':
             model = LinearNet(1, dim_context)
-        elif config['train']['model'] == 'neural':
+        elif config['model'] == 'neural':
             model = FCN(1, dim_context,
-                        layers=config['train']['layers'])
+                        layers=config['layers'])
         model = model.to(device)
         # create optimizer
-        optimizer = LangevinMC(model.parameters(), lr=config['train']['lr'],
+        optimizer = LangevinMC(model.parameters(), lr=config['lr'],
                                beta_inv=beta_inv, weight_decay=2.0)
-
-        # def lmc_func(x):
-        #     if x > 100 and x % 300 == 0:
-        #         return config['train']['lr'] / x
-        #     else:
-        #         return config['train']['lr']
-        # scheduler = LambdaLR(optimizer, lr_lambda=lmc_func)
-        # optimizer = SGD(model.parameters(),
-        #                 lr=config['train']['lr'], weight_decay=1.0)
         # Define loss function
         criterion = torch.nn.MSELoss(reduction='sum')
         collector = Collector()
-        agent = SimLMCTS(model, optimizer, criterion,
+        agent = LMCTS(model, optimizer, criterion,
                          collector,
                          name='LMCTS',
                          device=device)
@@ -97,7 +90,7 @@ def run(config, args):
         arm_to_pull = agent.choose_arm(context)
         reward, regret = bandit.get_reward(context, arm_to_pull)
         agent.receive_reward(arm_to_pull, context[arm_to_pull], reward)
-        agent.update_model(num_iter=min(e + 1, config['train']['num_iter']))
+        agent.update_model(num_iter=min(e + 1, config['num_iter']))
         regret_history.append(regret.item())
         accum_regret += regret.item()
 
@@ -113,15 +106,17 @@ def run(config, args):
                 }
             )
     df = pd.DataFrame({'regret': regret_history,
-                       'Step': np.arange(config['bandit']['T'])}
+                       'Step': np.arange(config['T'])}
                       )
+    if wandb and args.log:
+        run.finish()
     df.to_csv(f'log/{algo_name}-regrets-5020.csv')
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
-                        default='configs/simulation/gauss_bandit-quad.yaml')
+                        default='configs/sweep-default.yaml')
     parser.add_argument('--log', action='store_true', default=True)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:

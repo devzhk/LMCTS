@@ -1,16 +1,19 @@
 datapath: data/shuttle.trn
 
-bandit:
-  num_arm: 7
-  dim_context: 9
-  T: 10000
+# bandit
+num_arm: 7
+dim_context: 9
+T: 10000
 
-train:
-  algo: LMCTS
-  num_iter: 50
-  beta_inv: 0.0001
-  lr: 0.002
+# train
+algo: LMCTS
+model: neural
+act: LeakyReLU
+layers: [50, 50, 50]
+num_iter: 50
+beta_inv: 0.0001
+lr: 0.002
 
-log:
-  project: ContextualBandit-UCI
-  group: LMCTS-nonlinear
+# log
+project: ContextualBandit-UCI
+group: LMCTS-shuttle

@@ -14,14 +14,16 @@ class LinTS(_agent):
     def __init__(self,
                  num_arm,       # number of arms
                  dim_context,   # dimension of context vector
-                 nu,            #
-                 reg=1.0,
+                 nu,            # temperature hyperparameter to control variance
+                 reg=1.0,       # regularization weight
+                 device='cpu',  # device
                  name='Linear Thompson sampling'):
         super(LinTS, self).__init__(name)
         self.nu = nu
         self.reg = reg
         self.num_arm = num_arm
         self.dim_context = dim_context
+        self.device = device
         self.clear()
 
     def clear(self):
@@ -29,9 +31,9 @@ class LinTS(_agent):
         # initialize the design matrix
         # self.Design = self.reg * torch.eye(self.dim_context)
         self.DesignInv = (1 / self.reg) * \
-            torch.eye(self.dim_context)   # compute its inverse
-        self.Vector = torch.zeros(self.dim_context)
-        self.theta = torch.zeros(self.dim_context)
+            torch.eye(self.dim_context, device=self.device)   # compute its inverse
+        self.Vector = torch.zeros(self.dim_context, device=self.device)
+        self.theta = torch.zeros(self.dim_context, device=self.device)
         self.last_cxt = 0
         self.last_reward = 0
 
@@ -42,7 +44,7 @@ class LinTS(_agent):
         '''
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
-            cov = self.DesignInv + 0.001 * torch.eye(self.dim_context)
+            cov = self.DesignInv + 0.001 * torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
         dist = MultivariateNormal(self.theta.view(-1), self.nu ** 2 * cov)
@@ -104,3 +106,19 @@ class LinUCB(_agent):
         super(LinUCB, self).__init__(name)
         self.beta = beta
         self.reg = reg
+
+
+
+'''
+Neural Thompson Sampling
+'''
+
+class NeuralTS(_agent):
+    def __init__(self,
+                 model,             # Neural network model
+                 optimizer,         # optimizer
+                 criterion,         # loss function
+                 collector,
+                 device='cpu',
+                 name='NeuralTS'):
+        super(NeuralTS, self).__init__(name)

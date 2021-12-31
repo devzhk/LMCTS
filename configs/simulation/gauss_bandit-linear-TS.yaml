@@ -3,15 +3,15 @@ datapath: data/gaussian50-20-1-1.pt
 num_arm: 50
 dim_context: 20
 T: 10000
-sigma: 1.0
-func: quad
+sigma: 0.5
+func: linear
 
 # train
 algo: LinTS
 model: linear
 num_iter: 1
-nu: 0.05
+nu: 0.001
 
 # log
 project: ContextualBandit-simulation
-group: LinTS-quad
+group: LinTS-linear

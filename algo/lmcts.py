@@ -1,7 +1,58 @@
 import torch
+from .base import _agent
 from .langevin import LangevinMC
 
-from NeuralTS import transform
+
+class LMCTS(_agent):
+    def __init__(self, model,
+                 optimizer,
+                 criterion,
+                 collector,
+                 scheduler=None,
+                 device='cpu',
+                 name='default'):
+        super(LMCTS, self).__init__(name)
+
+        self.model = model
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.collector = collector
+        self.scheduler = scheduler
+        self.step = 0
+        self.base_lr = optimizer.lr
+        self.device = device
+
+    def clear(self):
+        self.model.init_weights()
+        self.collector.clear()
+        self.step = 0
+
+    def choose_arm(self, context):
+        with torch.no_grad():
+            pred = self.model(context)
+            arm_to_pull = torch.argmax(pred)
+        return int(arm_to_pull)
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+
+    def update_model(self, num_iter=5):
+        self.step += 1
+        if self.step % 20 == 0:
+            self.optimizer.lr = self.base_lr / self.step
+
+        contexts, arms, rewards = self.collector.fetch_batch()
+        contexts = torch.stack(contexts, dim=0)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+        # TODO: adapt code for minibatch training
+        self.model.train()
+        for i in range(num_iter):
+            self.model.zero_grad()
+            pred = self.model(contexts).squeeze(dim=1)
+            loss = self.criterion(pred, rewards)
+            loss.backward()
+            self.optimizer.step()
+        assert not torch.isnan(loss), "loss is Nan"
 
 
 class LTS(object):
@@ -13,15 +64,15 @@ class LTS(object):
                  unit_ball=False,
                  name='LMCTS'):
         '''
-        Parameters: 
+        Parameters:
             - model: torch.nn.Module, the model to train
-            - X: features Kxd tensor, 
+            - X: features Kxd tensor,
             - eta: learning rate for the inner loop
             - beta: inverse temperature parameter
             - num_iter: number of iteration of inner loop
             - sigma: std for Langevine dynamic
             - weight_decay: weight of regularizer
-            - bandit_generator: 
+            - bandit_generator:
             - sigma: sigma for bandit generation
         '''
         self.model = model
@@ -76,8 +127,8 @@ class LTS(object):
             self.optimizer.step()
 
     def update_features(self):
-        ''' 
-        Update context features, 
+        '''
+        Update context features,
         Required if update=True
         '''
 

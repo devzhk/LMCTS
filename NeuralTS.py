@@ -94,7 +94,7 @@ class MeanEstimatorWithBias(nn.Module):
         
     def init_weights(self):
          first_init=np.sqrt(4/self.m)*torch.randn((self.m,(self.d//2)-1)).to(device)
-         first_init=torch.cat([first_init,torch.zeros(self.m,1).to(device),torch.zeros(self.m,1).to(device),first_init],axis=1)
+         first_init=torch.cat([first_init,torch.zeros(self.m,1, device=device),torch.zeros(self.m,1, device=device),first_init],axis=1)
          self.sequential[0].weight.data=first_init
          
          for i in range(2,self.L-1):
