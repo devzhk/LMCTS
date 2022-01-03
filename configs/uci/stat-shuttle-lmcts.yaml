@@ -10,10 +10,10 @@ algo: LMCTS
 model: neural
 act: LeakyReLU
 layers: [50, 50, 50]
-num_iter: 50
+num_iter: 70
 beta_inv: 0.0001
-lr: 0.002
+lr: 0.01
 
 # log
-project: ContextualBandit-UCI
-group: LMCTS-shuttle
+project: ContextualBandit-ICML
+group: Shuttle-LMCTS

@@ -11,10 +11,11 @@ func: quad
 algo: LMCTS
 model: neural
 layers: [20, 20, 20]
+act: LeakyReLU
 num_iter: 50
 beta_inv: 0.01
 lr: 0.001
 
 # log
-project: ContextualBandit-simulation
-group: LMCTS-quad
+project: ContextualBandit-ICML
+group: Quad-LMCTS

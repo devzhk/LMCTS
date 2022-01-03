@@ -65,7 +65,8 @@ def run(config, args):
             model = LinearNet(1, dim_context)
         elif config['model'] == 'neural':
             model = FCN(1, dim_context,
-                        layers=config['layers'])
+                        layers=config['layers'],
+                        act=config['act'])
         model = model.to(device)
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['lr'],

@@ -10,8 +10,8 @@ func: quad
 algo: LinTS
 model: linear
 num_iter: 1
-nu: 0.05
+nu: 0.001
 
 # log
-project: ContextualBandit-simulation
-group: LinTS-quad
+project: ContextualBandit-ICML
+group: Quad-LinTS
