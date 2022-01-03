@@ -12,27 +12,17 @@ We first generate $\theta^*\in\mathbb{R}^d$ with each coordinate randomly sample
 
 During the training, at $t$-th iteration, action set is $X[(t-1)K+1,\ldots, tK; :]$, choose one action according the strategy.
 
-Pull the chosen action, and received reward $r_t=\theta^{*\top}X[t_a;:]+\epsilon$, where the noise is sampled from $N(0,\sigma^2)$. 
-
-**Hyperparameter search range**
-- Linear Thompson Sampling: nu constant {1e-4, $1e-3$, 2e-3, 5e-3, 1e-2, 2e-2, 5e-2, 1e-1}
-- Lagevine Monte Carlo Thompson Sampling: lr: {0.1, **0.02**, 0.01}, beta: {0.5, 0.1, 0.05, **0.01**, 0.005, 0.001}, num_iter {1, 10, 15}.
-
+Pull the chosen action, and received reward $r_t=\theta^{*\top}X[t_a;:]+\epsilon$, where the noise is sampled from $N(0,\sigma^2)$.
 
 #### Logistic Bandit
 
 $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 
 ### UCI datasets
-1. Statlog
+1. Statlog-shuttle
 2. CoverType
 3. Magic
 4. Mushroom
-
-statlog: 
-- LMCTS: lr {}
-- LinTS: nu {0.1, 0.01, 0.02, 0.001}
-
 
 ### Yahoo R6A&B datasets
 
