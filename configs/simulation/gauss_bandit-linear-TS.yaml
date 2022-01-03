@@ -10,8 +10,8 @@ func: linear
 algo: LinTS
 model: linear
 num_iter: 1
-nu: 0.001
+nu: 0.005
 
 # log
-project: ContextualBandit-simulation
-group: LinTS-linear
+project: ContextualBandit-ICML
+group: Linear-LinTS

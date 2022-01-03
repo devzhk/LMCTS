@@ -14,5 +14,5 @@ beta_inv: 0.00001
 lr: 0.1
 
 # log
-project: ContextualBandit-simulation
-group: LMCTS-01
+project: ContextualBandit-ICML
+group: Linear-LMCTS
