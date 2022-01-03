@@ -105,8 +105,10 @@ if __name__ == '__main__':
     parser.add_argument('--config_path', type=str,
                         default='configs/uci/stat-shuttle-lmcts.yaml')
     parser.add_argument('--log', action='store_true', default=True)
+    parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)
-    run(config, args)
+    for i in range(args.repeat):
+        run(config, args)
     print('Done!')

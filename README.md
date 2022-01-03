@@ -41,21 +41,30 @@ statlog:
 ## Data generation and preprocessing 
 
 
-## How to run bandit algorithm
+## How to run 
 ### Synthetic data
 To run bandit algorithm on synthetic data
 ```bash
-python3 run_simulation.py --config_path configs/gaussian_bandit.yaml 
+python3 run_simulation.py --config_path configs/simulation/gaussian_bandit-linear-LMCTS.yaml --repeat [number of experiments to repeat] --log 
 ```
 
 ### UCI datasets
+```bash
+python3 run_classifier.py --config_path configs/uci/stat-shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
+```
 
+## Hyperparameter Search
+We use wandb to do grid search. Search space is defined in `.yaml` files under sweep directory. 
+```bash
+wandb sweep sweep/uci/shuttle-lmcts.yaml
+wandb agent [agent id]
+```
 
 ### TODO:
-- [ ] Squared reward (linear vs neural network)
-- [ ] Hyperparameter tuning for linear bandit 
+- [x] Squared reward (linear vs neural network)
+- [x] Hyperparameter tuning for linear bandit 
 - [ ] Neural network for classfication (linear vs neural network)
-- [ ] ablation study on linear bandit setting
+- [x] ablation study on linear bandit setting
 - [ ] update results in fixed arm setting
 - [ ] profile the computation cost of arm selection and inner loop update
 - [ ] 
