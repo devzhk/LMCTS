@@ -7,9 +7,9 @@ T: 10000
 
 # train
 algo: LinTS
-nu: 10
+nu: 0.01
 num_iter: 1
 
 # log
-project: ContextualBandit-UCI
+project: ContextualBandit-ICML
 group: Shuttle-LinTS

@@ -1,0 +1,17 @@
+data_name: covertype
+version: 3
+num_data: 15000
+
+# bandit
+num_arm: 7
+dim_context: 54
+T: 15000
+
+# train
+algo: LinTS
+nu: 0.01
+num_iter: 1
+
+# log
+project: ContextualBandit-UCI
+group: Covtype-LinTS

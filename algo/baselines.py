@@ -1,9 +1,7 @@
-from re import L
 import torch
 from torch.distributions.multivariate_normal import MultivariateNormal
-
+import numpy as np
 from .base import _agent
-from train_utils.helper import randmax
 
 '''
 Linear Thompson Sampling method
@@ -69,6 +67,13 @@ class LinTS(_agent):
 '''
 Follow the leader strategy
 '''
+def randmax(arr):
+    '''
+    Randomly pick an element among maximal elements.
+    '''
+    max_value = arr.max()
+    idxs = [i for i, value in enumerate(arr) if value == max_value]
+    return np.random.choice(idxs)
 
 
 class FTL(_agent):
@@ -111,14 +116,54 @@ class LinUCB(_agent):
 
 '''
 Neural Thompson Sampling
+
+following the official implementation from https://github.com/ZeroWeight/NeuralTS/blob/master/learner_neural.py
+1. the authors use the inverse of the diagonal elements of U to approximate the design matrix inverse U^{-1}
+
 '''
+def get_param_size(model):
+    '''
+    Args:
+        model: nn.Module
+    Return:
+        the number of learnable parameters in the model
+    '''
+    num = sum([p.numel() for p in model.parameters() if p.requires_grad])
+    return num
+
 
 class NeuralTS(_agent):
     def __init__(self,
+                 num_arm,           # number of arms
+                 dim_context,       # dimension of context feature
                  model,             # Neural network model
                  optimizer,         # optimizer
                  criterion,         # loss function
-                 collector,
+                 collector,         # context and reward collector
+                 nu,                # exploration variance
+                 reg=1.0,           # regularization weight
                  device='cpu',
                  name='NeuralTS'):
         super(NeuralTS, self).__init__(name)
+
+        self.num_arm = num_arm
+        self.dim_context = dim_context
+
+        self.model = model
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.collector = collector
+        self.nu = nu
+        self.reg = reg
+        self.device = device
+
+        self.num_params = get_param_size(model)
+
+    def clear(self):
+        self.model.init_weights()
+        self.collector.clear()
+        self.Design = self.reg * torch.ones(self.num_params, device=self.device)
+
+    def choose_arm(self, context):
+        pass
+

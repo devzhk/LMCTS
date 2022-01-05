@@ -1,4 +1,4 @@
-
+from sklearn.datasets import fetch_openml
 import numpy as np
 
 import torch
@@ -40,6 +40,35 @@ class UCI(Dataset):
         # data preprocessing
         context = data[:, 0:dim_context].astype(np.float32)
         # context = context - context.mean(axis=0, keepdims=True)
+        self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
+        self.context = torch.tensor(self.context)
+
+
+class AutoUCI(Dataset):
+    def __init__(self, name, dim_context, num_arms, num_data=None, version='active'):
+        super(AutoUCI, self).__init__()
+        self.dim_context = dim_context
+        self.num_arms = num_arms
+        self.loaddata(name, version, num_data)
+
+    def __getitem__(self, idx):
+        x = self.context[idx]
+        cxt = torch.zeros((self.num_arms, self.dim_context * self.num_arms))
+        for i in range(self.num_arms):
+            cxt[i, i * self.dim_context: (i + 1) * self.dim_context] = x
+        return cxt, self.label[idx]
+
+    def __len__(self):
+        return self.label.shape[0]
+
+    def loaddata(self, name, version, num_data):
+        cxt, label = fetch_openml(name=name, version=version, data_home='data', return_X_y=True)
+        self.label = np.array(label).astype(int)
+        context = np.array(cxt).astype(np.float32)
+        if num_data:
+            self.label = self.label[0:num_data]
+            context = context[0:num_data, :]
+
         self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
         self.context = torch.tensor(self.context)
 

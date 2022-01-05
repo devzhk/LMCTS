@@ -1,17 +1,13 @@
-from train_utils.dataset import UCI, Collector
-from algo.baselines import LinTS, FTL
 import yaml
 from argparse import ArgumentParser
 from tqdm import tqdm
 import pandas as pd
-import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
 
-from models.classifier import LinearNet, FCN
-from algo.langevin import LangevinMC
-from algo import LMCTS
+from train_utils.helper import construct_agent
+from train_utils.dataset import UCI, AutoUCI
 
 try:
     import wandb
@@ -20,11 +16,6 @@ except ImportError:
 
 
 def run(config, args):
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    T = config['T']
-    dim_context = config['dim_context']
-    num_arm = config['num_arm']
-    algo_name = config['algo']
     if args.log and wandb:
         group = config['group'] if 'group' in config else None
         run = wandb.init(
@@ -33,33 +24,19 @@ def run(config, args):
             group=group,
             config=config)
         config = wandb.config
+
+    # Parse configuration
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    T = config['T']
+    dim_context = config['dim_context']
+    num_arm = config['num_arm']
     # ---------------- construct strategy -------------------------
-    if algo_name == 'LinTS':
-        nu = config['nu'] * np.sqrt(num_arm * dim_context * np.log(T))
-        agent = LinTS(num_arm, num_arm * dim_context, nu, reg=1.0)
-    elif algo_name == 'LMCTS':
-        beta_inv = config['beta_inv'] * dim_context * np.log(T)
-        # Define model
-        if config['model'] == 'linear':
-            model = LinearNet(1, dim_context * num_arm)
-        elif config['model'] == 'neural':
-            model = FCN(1, dim_context * num_arm,
-                        layers=config['layers'],
-                        act=config['act'],
-                        norm=True)
-        model = model.to(device)
-        # create Lagevine Monte Carol optimizer
-        optimizer = LangevinMC(model.parameters(), lr=config['lr'],
-                               beta_inv=beta_inv, weight_decay=2.0)
-        # Define loss function
-        criterion = torch.nn.MSELoss(reduction='sum')
-        collector = Collector()
-        agent = LMCTS(model, optimizer, criterion,
-                         collector, name='LMCTS', device=device)
-    elif algo_name == 'FTL':
-        agent = FTL(num_arm)
+    agent = construct_agent(config, device)
+
     # --------------- construct bandit ---------------------------
-    dataset = UCI(config['datapath'], dim_context, num_arm)
+    # dataset = UCI(config['datapath'], dim_context, num_arm)
+    dataset = AutoUCI(config['data_name'], dim_context, num_arm,
+                      config['num_data'], config['version'])
     bandit = DataLoader(dataset, shuffle=True)
     # --------------------- training -----------------------------
     pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)
@@ -104,7 +81,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/uci/stat-shuttle-lmcts.yaml')
-    parser.add_argument('--log', action='store_true', default=True)
+    parser.add_argument('--log', action='store_true', default=False)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
