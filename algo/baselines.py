@@ -1,3 +1,4 @@
+import PIL.GimpGradientFile
 import torch
 from torch.distributions.multivariate_normal import MultivariateNormal
 import numpy as np
@@ -117,9 +118,9 @@ class LinUCB(_agent):
 '''
 Neural Thompson Sampling
 
-following the official implementation from https://github.com/ZeroWeight/NeuralTS/blob/master/learner_neural.py
+Adapted from the official implementation at https://github.com/ZeroWeight/NeuralTS/blob/master/learner_neural.py
 1. the authors use the inverse of the diagonal elements of U to approximate the design matrix inverse U^{-1}
-
+2. We divide the  according to paper's algorithm
 '''
 def get_param_size(model):
     '''
@@ -141,7 +142,8 @@ class NeuralTS(_agent):
                  criterion,         # loss function
                  collector,         # context and reward collector
                  nu,                # exploration variance
-                 reg=1.0,           # regularization weight
+                 m=1,                 # Width of neural network
+                 reg=1.0,           # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralTS'):
         super(NeuralTS, self).__init__(name)
@@ -150,6 +152,7 @@ class NeuralTS(_agent):
         self.dim_context = dim_context
 
         self.model = model
+        self.m = m
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
@@ -163,7 +166,129 @@ class NeuralTS(_agent):
         self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * torch.ones(self.num_params, device=self.device)
+        self.last_cxt = 0
 
     def choose_arm(self, context):
-        pass
+        rewards = []
+        for i in range(self.num_arm):
+            self.model.zero_grad()
+            ri = self.model(context[i])
+            ri.backward()
 
+            grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+
+            squared_sigma = self.reg * self.nu * grad * grad / self.Design
+            sigma = torch.sqrt(torch.sum(squared_sigma))
+
+            sample_r = ri + torch.randn(1, device=self.device) * sigma
+            rewards.append(sample_r.item())
+        arm_to_pull = np.argmax(rewards)
+        return arm_to_pull
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+        self.last_cxt = context
+
+    def update_model(self, num_iter):
+        contexts, arms, rewards = self.collector.fetch_batch()
+        contexts = torch.stack(contexts, dim=0)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+
+        self.model.train()
+        for i in range(num_iter):
+            self.model.zero_grad()
+            pred = self.model(contexts).squeeze(dim=1)
+            loss = self.criterion(pred, rewards)
+            loss.backward()
+            self.optimizer.step()
+            if loss.item() < 1e-3:
+                break
+        assert not torch.isnan(loss), 'Loss is Nan!'
+
+        # update the design matrix
+        self.model.zero_grad()
+        re = self.model(self.last_cxt)
+        re.backward()
+        grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+        self.Design += grad * grad
+
+
+'''
+Neural UCB
+Adapted from the implementation at https://github.com/ZeroWeight/NeuralTS/blob/master/learner_neural.py
+'''
+
+class NeuralUCB(_agent):
+    def __init__(self,
+                 num_arm,           # number of arms
+                 dim_context,       # dimension of context feature
+                 model,             # Neural network model
+                 optimizer,         # optimizer
+                 criterion,         # loss function
+                 collector,         # context and reward collector
+                 nu,                # exploration variance
+                 m=1,                 # Width of neural network
+                 reg=1.0,           # regularization weight, lambda in original paper
+                 device='cpu',
+                 name='NeuralUCB'):
+        super(NeuralUCB, self).__init__(name)
+
+        self.num_arm = num_arm
+        self.dim_context = dim_context
+
+        self.model = model
+        self.m = m
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.collector = collector
+        self.nu = nu
+        self.reg = reg
+        self.device = device
+
+        self.num_params = get_param_size(model)
+
+    def clear(self):
+        self.model.init_weights()
+        self.collector.clear()
+        self.Design = self.reg * torch.ones(self.num_params, device=self.device)
+        self.last_cxt = 0
+
+    def choose_arm(self, context):
+        rewards = []
+        grad_list = []
+        for i in range(self.num_arm):
+            self.model.zero_grad()
+            ri = self.model(context[i])
+            ri.backward()
+
+            grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+            grad_list.append(grad)
+            squared_sigma = self.reg * self.nu * grad * grad / self.Design
+            sigma = torch.sqrt(torch.sum(squared_sigma))
+
+            sample_r = ri + sigma
+            rewards.append(sample_r.item())
+        arm_to_pull = np.argmax(rewards)
+        # update the design matrix
+        self.Design += grad_list[arm_to_pull] * grad_list[arm_to_pull]
+        return arm_to_pull
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+        self.last_cxt = context
+
+    def update_model(self, num_iter):
+        contexts, arms, rewards = self.collector.fetch_batch()
+        contexts = torch.stack(contexts, dim=0)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+
+        self.model.train()
+        for i in range(num_iter):
+            self.model.zero_grad()
+            pred = self.model(contexts).squeeze(dim=1)
+            loss = self.criterion(pred, rewards)
+            loss.backward()
+            self.optimizer.step()
+            if loss.item() < 1e-3:
+                break
+        assert not torch.isnan(loss), 'Loss is Nan!'

@@ -9,9 +9,9 @@ T: 15000
 
 # train
 algo: LinTS
-nu: 0.01
+nu: 0.002
 num_iter: 1
 
 # log
-project: ContextualBandit-UCI
-group: Covtype-LinTS
+project: ContextualBandit-ICML
+group: Covertype-LinTS

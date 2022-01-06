@@ -1,8 +1,10 @@
 import numpy as np
 import torch
+from torch.optim import SGD
+
 from models.classifier import LinearNet, FCN
 from algo.langevin import LangevinMC
-from algo import LMCTS, LinTS, FTL
+from algo import LMCTS, LinTS, FTL, NeuralTS, NeuralUCB
 
 from train_utils.dataset import Collector
 
@@ -36,5 +38,30 @@ def construct_agent(config, device):
                          collector, name='LMCTS', device=device)
     elif algo_name == 'FTL':
         agent = FTL(num_arm)
-
+    elif algo_name == 'NeuralTS':
+        model = FCN(1, dim_context * num_arm,
+                    layers=config['layers'],
+                    act=config['act'])
+        model = model.to(device)
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        criterion = torch.nn.MSELoss()
+        collector = Collector()
+        agent = NeuralTS(num_arm, dim_context,
+                         model, optimizer,
+                         criterion, collector,
+                         config['nu'], m=config['layers'][0], reg=config['reg'],
+                         device=device)
+    elif algo_name == 'NeuralUCB':
+        model = FCN(1, dim_context * num_arm,
+                    layers=config['layers'],
+                    act=config['act'])
+        model = model.to(device)
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        criterion = torch.nn.MSELoss()
+        collector = Collector()
+        agent = NeuralUCB(num_arm, dim_context,
+                          model, optimizer,
+                          criterion, collector,
+                          config['nu'], m=config['layers'][0], reg=config['reg'],
+                          device=device)
     return agent

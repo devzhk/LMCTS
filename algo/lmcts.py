@@ -52,7 +52,7 @@ class LMCTS(_agent):
             loss = self.criterion(pred, rewards)
             loss.backward()
             self.optimizer.step()
-        assert not torch.isnan(loss), "loss is Nan"
+        assert not torch.isnan(loss), "Loss is Nan!"
 
 
 # class LTS(object):

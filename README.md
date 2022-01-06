@@ -21,7 +21,7 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 ### UCI datasets
 1. Statlog-shuttle
 2. CoverType
-3. Magic
+3. Magic (+5 if eating a safe mushroom, +5 w.prob 0.5 )
 4. Mushroom
 
 ### Yahoo R6A&B datasets
@@ -51,13 +51,9 @@ wandb agent [agent id]
 ```
 
 ### TODO:
-- [x] Squared reward (linear vs neural network)
-- [x] Hyperparameter tuning for linear bandit 
 - [ ] Neural network for classfication (linear vs neural network)
-- [x] ablation study on linear bandit setting
 - [ ] update results in fixed arm setting
 - [ ] profile the computation cost of arm selection and inner loop update
-- [ ] 
 
 Baseline: 
 - [ ] Neural Thompson Sampling

@@ -63,7 +63,7 @@ class AutoUCI(Dataset):
 
     def loaddata(self, name, version, num_data):
         cxt, label = fetch_openml(name=name, version=version, data_home='data', return_X_y=True)
-        self.label = np.array(label).astype(int)
+        self.label = np.array(label).astype(int) - 1
         context = np.array(cxt).astype(np.float32)
         if num_data:
             self.label = self.label[0:num_data]

@@ -35,8 +35,9 @@ def run(config, args):
 
     # --------------- construct bandit ---------------------------
     # dataset = UCI(config['datapath'], dim_context, num_arm)
+    num_data = config['num_data'] if 'num_data' in config else None
     dataset = AutoUCI(config['data_name'], dim_context, num_arm,
-                      config['num_data'], config['version'])
+                      num_data, config['version'])
     bandit = DataLoader(dataset, shuffle=True)
     # --------------------- training -----------------------------
     pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/uci/stat-shuttle-lmcts.yaml')
-    parser.add_argument('--log', action='store_true', default=False)
+    parser.add_argument('--log', action='store_true', default=True)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:

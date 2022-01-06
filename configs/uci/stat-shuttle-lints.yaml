@@ -1,4 +1,5 @@
-datapath: data/shuttle.trn
+data_name: shuttle
+version: 1
 
 # bandit
 num_arm: 7
