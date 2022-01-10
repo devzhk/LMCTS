@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
-from train_utils.helper import construct_agent
+from train_utils.helper import construct_agent_cls
 from train_utils.dataset import UCI, AutoUCI
 
 try:
@@ -31,7 +31,7 @@ def run(config, args):
     dim_context = config['dim_context']
     num_arm = config['num_arm']
     # ---------------- construct strategy -------------------------
-    agent = construct_agent(config, device)
+    agent = construct_agent_cls(config, device)
 
     # --------------- construct bandit ---------------------------
     # dataset = UCI(config['datapath'], dim_context, num_arm)

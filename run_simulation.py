@@ -10,8 +10,7 @@ from torch.utils.data import DataLoader
 from models.classifier import LinearNet, FCN
 from algo.langevin import LangevinMC
 
-from algo import LMCTS
-from algo.baselines import LinTS, FTL
+from train_utils.helper import construct_agent_sim
 
 from train_utils.dataset import Collector, SimData
 from train_utils.bandit import LinearBandit, QuadBandit
@@ -52,7 +51,8 @@ def run(config, args):
         raise ValueError('Only linear or quadratic function')
     print(config)
     # ------------- construct strategy --------------------
-    algo_name = config['algo']
+
+    agent = construct_agent_sim(config, device)
     if algo_name == 'LinTS':
         nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
