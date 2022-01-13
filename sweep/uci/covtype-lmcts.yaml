@@ -21,15 +21,15 @@ parameters:
   model:
     value: neural
   layers:
-    value: [50, 50, 50, 50]
+    value: [100, 100]
   act:
     values: ['ReLU', 'LeakyReLU', 'elu', 'tanh', 'selu']
   beta_inv:
-    values: [0.00001, 0.0001, 0.001, 0.01]
+    values: [0.00001, 0.0001, 0.001]
   lr:
-    values: [0.01, 0.005, 0.001, 0.0005, 0.0001]
+    values: [0.005, 0.001, 0.0005]
   num_iter:
-    values: [70, 50, 30]
+    value: 50
 command: 
   - ${env}
   - python3

@@ -66,5 +66,6 @@ class FCN(nn.Module):
 
     def init_weights(self):
         for module in self.net:
-            module.reset_parameters()
+            if isinstance(module, nn.Linear):
+                module.reset_parameters()
 

@@ -5,13 +5,13 @@ num_data: 15000
 # bandit
 num_arm: 7
 dim_context: 54
-T: 9000
+T: 15000
 
 # train
 algo: LMCTS
 model: neural
 act: LeakyReLU
-layers: [50, 50, 50, 50]
+layers: [64, 64, 64, 64]
 num_iter: 50
 beta_inv: 0.0001
 lr: 0.005

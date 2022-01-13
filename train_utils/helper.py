@@ -1,10 +1,10 @@
 import numpy as np
 import torch
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 
 from models.classifier import LinearNet, FCN
 from algo.langevin import LangevinMC
-from algo import LMCTS, LinTS, FTL, NeuralTS, NeuralUCB
+from algo import LMCTS, LinTS, EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy
 
 from train_utils.dataset import Collector
 
@@ -39,8 +39,8 @@ def construct_agent_cls(config, device):
         collector = Collector()
         agent = LMCTS(model, optimizer, criterion,
                       collector, name='LMCTS', device=device)
-    elif algo_name == 'FTL':
-        agent = FTL(num_arm)
+    elif algo_name == 'EpsGreedy':
+        agent = EpsGreedy(num_arm, config['eps'])
     elif algo_name == 'NeuralTS':
         model = FCN(1, dim_context * num_arm,
                     layers=config['layers'],
@@ -67,6 +67,21 @@ def construct_agent_cls(config, device):
                           criterion, collector,
                           config['nu'], m=config['layers'][0], reg=config['reg'],
                           device=device)
+    elif algo_name == 'NeuralEpsGreedy':
+        model = FCN(1, dim_context * num_arm,
+                    layers=config['layers'],
+                    act=config['act'])
+        model = model.to(device)
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        criterion = torch.nn.MSELoss()
+        collector = Collector()
+        agent = NeuralEpsGreedy(num_arm, dim_context,
+                                model, optimizer,
+                                criterion, collector,
+                                config['eps'])
+    else:
+        raise ValueError(f'{algo_name} is not supported. Please choose from '
+                         f'LinTS, LMCTS, NeuralTS, NeuralUCB, EpsGreedy')
     return agent
 
 
@@ -101,14 +116,14 @@ def construct_agent_sim(config, device):
                       collector,
                       name='LMCTS',
                       device=device)
-    elif algo_name == 'FTL':
-        agent = FTL(num_arm)
+    elif algo_name == 'EpsGreedy':
+        agent = EpsGreedy(num_arm, config['eps'])
     elif algo_name == 'NeuralTS':
         model = FCN(1, dim_context,
                     layers=config['layers'],
                     act=config['act'])
         model = model.to(device)
-        optimizer = SGD(model.parameters(), lr=config['lr'])
+        optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         criterion = torch.nn.MSELoss()
         collector = Collector()
         agent = NeuralTS(num_arm, dim_context,
@@ -121,7 +136,7 @@ def construct_agent_sim(config, device):
                     layers=config['layers'],
                     act=config['act'])
         model = model.to(device)
-        optimizer = SGD(model.parameters(), lr=config['lr'])
+        optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         criterion = torch.nn.MSELoss()
         collector = Collector()
         agent = NeuralUCB(num_arm, dim_context,
@@ -129,4 +144,19 @@ def construct_agent_sim(config, device):
                           criterion, collector,
                           config['nu'], m=config['layers'][0], reg=config['reg'],
                           device=device)
+    elif algo_name == 'NeuralEpsGreedy':
+        model = FCN(1, dim_context,
+                    layers=config['layers'],
+                    act=config['act'])
+        model = model.to(device)
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        criterion = torch.nn.MSELoss()
+        collector = Collector()
+        agent = NeuralEpsGreedy(num_arm, dim_context,
+                                model, optimizer,
+                                criterion, collector,
+                                config['eps'], device=device)
+    else:
+        raise ValueError(f'{algo_name} is not supported. Please choose from '
+                         f'LinTS, LMCTS, NeuralTS, NeuralUCB, EpsGreedy')
     return agent

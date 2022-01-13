@@ -1,0 +1,42 @@
+program: run_simulation.py
+method: grid
+metric:
+  goal: minimize
+  name: Regret
+parameters:
+  datapath:
+    value: data/gaussian50-20-1-1.pt
+  num_arm: 
+    value: 50
+  dim_context: 
+    value: 20
+  T:
+    value: 10000
+  sigma: 
+    value: 1.0
+  func: 
+    value: quad
+  algo: 
+    value: NeuralUCB
+  model:
+    value: neural
+  layers:
+    value: [20, 20]
+  act:
+    value: ReLU
+  num_iter:
+    value: 1000
+  lr:
+    value: 0.001
+  nu:
+    values: [10, 0.1, 0.01, 0.001, 0.001]
+  reg:
+    values: [1.0, 0.1, 0.01]
+command: 
+  - ${env}
+  - python3
+  - ${program}
+
+name: NeuralTS-quad
+project: ContextualBandit-sweep-quad
+entity: hzzheng

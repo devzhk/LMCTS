@@ -15,24 +15,26 @@ parameters:
   T:
     value: 10000
   algo:
-    value: LMCTS
+    value: NeuralTS
   model:
     value: neural
   layers:
-    value: [50, 50, 50]
+    value: [100]
   act:
-    values: ['ReLU', 'LeakyReLU', 'elu', 'tanh', 'selu']
-  beta_inv:
-    values: [0.00001, 0.0001, 0.001, 0.01]
-  lr:
-    values: [0.01, 0.002, 0.0002]
+    value: 'ReLU'
   num_iter:
-    values: [70, 50, 30]
+    value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.001, 0.01, 0.1, 1.0]
+  nu:
+    values: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: LMCTS-shuttle
+name: Shuttle-NeuralTS
 project: ContextualBandit-UCI
 entity: hzzheng

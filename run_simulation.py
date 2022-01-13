@@ -7,12 +7,9 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from models.classifier import LinearNet, FCN
-from algo.langevin import LangevinMC
-
 from train_utils.helper import construct_agent_sim
 
-from train_utils.dataset import Collector, SimData
+from train_utils.dataset import SimData
 from train_utils.bandit import LinearBandit, QuadBandit
 try:
     import wandb
@@ -36,9 +33,7 @@ def run(config, args):
     theta = data['theta'].to(device)
     sigma = config['sigma']
     T = config['T']
-    dim_context = config['dim_context']
-    num_arm = config['num_arm']
-
+    algo_name = config['algo']
     # Create dataset
     dataset = SimData(config['datapath'])
     loader = DataLoader(dataset, shuffle=False)
@@ -53,33 +48,6 @@ def run(config, args):
     # ------------- construct strategy --------------------
 
     agent = construct_agent_sim(config, device)
-    if algo_name == 'LinTS':
-        nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
-        agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
-    elif algo_name == 'LMCTS':
-        beta_inv = config['beta_inv'] * dim_context * np.log(T)
-
-        print(f'Beta inverse: {beta_inv}')
-        # Define model
-        if config['model'] == 'linear':
-            model = LinearNet(1, dim_context)
-        elif config['model'] == 'neural':
-            model = FCN(1, dim_context,
-                        layers=config['layers'],
-                        act=config['act'])
-        model = model.to(device)
-        # create optimizer
-        optimizer = LangevinMC(model.parameters(), lr=config['lr'],
-                               beta_inv=beta_inv, weight_decay=2.0)
-        # Define loss function
-        criterion = torch.nn.MSELoss(reduction='sum')
-        collector = Collector()
-        agent = LMCTS(model, optimizer, criterion,
-                         collector,
-                         name='LMCTS',
-                         device=device)
-    elif algo_name == 'FTL':
-        agent = FTL(num_arm)
     # ---------------------------------------------------
     pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)
 

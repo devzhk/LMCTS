@@ -1,2 +1,3 @@
 from .lmcts import LMCTS
-from .baselines import LinTS, FTL, NeuralTS, NeuralUCB
+from .baselines import LinTS, EpsGreedy, \
+    NeuralTS, NeuralUCB, NeuralEpsGreedy

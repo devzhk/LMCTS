@@ -66,7 +66,7 @@ class LinTS(_agent):
 
 
 '''
-Follow the leader strategy
+Epsilon greedy algorithm
 '''
 def randmax(arr):
     '''
@@ -77,21 +77,29 @@ def randmax(arr):
     return np.random.choice(idxs)
 
 
-class FTL(_agent):
-    def __init__(self, num_arm, name='FTL'):
-        super(FTL, self).__init__(name)
+class EpsGreedy(_agent):
+    '''
+    epsilon-greedy
+    '''
+    def __init__(self, num_arm, eps=0.0, name='eps-greedy'):
+        super(EpsGreedy, self).__init__(name)
         self.num_arm = num_arm
+        self.eps = eps
         self.clear()
 
     def clear(self):
         self.num_draw = torch.zeros(self.num_arm)
         self.rewards = torch.zeros(self.num_arm)
+        self.step = 0
 
     def choose_arm(self, context):
         if self.num_draw.min() == 0:
             return randmax(- self.num_draw)
         else:
-            return randmax(self.rewards)
+            if np.random.uniform() < self.eps:
+                return np.random.randint(self.num_arm)
+            else:
+                return randmax(self.rewards)
 
     def receive_reward(self, arm, context, reward):
         num = self.num_draw[arm]
@@ -99,7 +107,7 @@ class FTL(_agent):
         self.num_draw[arm] += 1
 
     def update_model(self, num_iter=None):
-        pass
+        self.step += 1
 
 
 '''
@@ -159,14 +167,17 @@ class NeuralTS(_agent):
         self.nu = nu
         self.reg = reg
         self.device = device
+        self.step = 0
 
         self.num_params = get_param_size(model)
+        self.clear()
 
     def clear(self):
         self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
+        self.step = 0
 
     def choose_arm(self, context):
         rewards = []
@@ -190,10 +201,13 @@ class NeuralTS(_agent):
         self.last_cxt = context
 
     def update_model(self, num_iter):
+        self.step += 1
+        for p in self.optimizer.param_groups:
+            p['weight_decay'] = self.reg / self.step
+
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.stack(contexts, dim=0)
         rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-
         self.model.train()
         for i in range(num_iter):
             self.model.zero_grad()
@@ -244,8 +258,10 @@ class NeuralUCB(_agent):
         self.nu = nu
         self.reg = reg
         self.device = device
+        self.step = 0
 
         self.num_params = get_param_size(model)
+        self.clear()
 
     def clear(self):
         self.model.init_weights()
@@ -278,10 +294,13 @@ class NeuralUCB(_agent):
         self.last_cxt = context
 
     def update_model(self, num_iter):
+        self.step += 1
+        for p in self.optimizer.param_groups:
+            p['weight_decay'] = self.reg / self.step
+
         contexts, arms, rewards = self.collector.fetch_batch()
         contexts = torch.stack(contexts, dim=0)
         rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-
         self.model.train()
         for i in range(num_iter):
             self.model.zero_grad()
@@ -292,3 +311,65 @@ class NeuralUCB(_agent):
             if loss.item() < 1e-3:
                 break
         assert not torch.isnan(loss), 'Loss is Nan!'
+
+
+'''
+Neural greedy algo and Neural eps-greedy algo
+'''
+class NeuralEpsGreedy(_agent):
+    def __init__(self,
+                 num_arm,
+                 dim_context,
+                 model,
+                 optimizer,
+                 criterion,
+                 collector,
+                 eps=0.0,               # 0<=eps<1, eps=0 -> neural greedy, otherwise -> neural eps-greedy
+                 device='cpu',
+                 name='NeuralEpsGreedy'):
+        super(NeuralEpsGreedy, self).__init__(name)
+        self.num_arm = num_arm
+        self.dim_context = dim_context
+
+        self.model = model
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.collector = collector
+
+        self.eps = eps
+        self.step = 0
+        self.device = device
+
+    def clear(self):
+        self.model.init_weights()
+        self.collector.clear()
+        self.step = 0
+
+    def choose_arm(self, context):
+        prob = self.eps / np.sqrt(self.step+1)
+        if np.random.uniform() < prob:
+            return np.random.randint(self.num_arm)
+        else:
+            with torch.no_grad():
+                pred = self.model(context)
+                arm_to_pull = torch.argmax(pred)
+            return int(arm_to_pull)
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+
+    def update_model(self, num_iter=5):
+        if self.step % 50 == 0:
+            contexts, arms, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0)
+            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            # TODO: adapt code for minibatch training
+            self.model.train()
+            for i in range(num_iter):
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), "Loss is Nan!"
+        self.step += 1

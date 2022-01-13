@@ -2,7 +2,7 @@
 
 
 ## Data description
-
+Remark: for all experiments in this repo, bandit arm index always starts from 0. For example, K arms are indexed as 0, 1, ..., K-1.  
 ### Synthetic data description
 
 #### Linear bandit
@@ -52,13 +52,18 @@ wandb agent [agent id]
 
 ### TODO:
 - [ ] Neural network for classfication (linear vs neural network)
-- [ ] update results in fixed arm setting
+- [x] update results in fixed arm setting
 - [ ] profile the computation cost of arm selection and inner loop update
-
+- [ ] eps decay schedule: c/\sqrt{t}
 Baseline: 
-- [ ] Neural Thompson Sampling
-- [ ] Neural UCB
+- [x] Neural Thompson Sampling
+- [x] Neural UCB
 - [x] LinTS
 - [ ] Neural linear
-- [ ] Neural greedy
-- [ ] Neural epsilon-greedy
+- [x] Neural greedy
+- [x] Neural epsilon-greedy
+
+# 
+- [ ] UCB-GML (provably optimal)
+- [ ] TS-GML
+- Eps-greedy

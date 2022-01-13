@@ -1,34 +1,34 @@
-# example
 program: run_simulation.py
-method: random
+method: grid
 metric:
   goal: minimize
   name: Regret
-datapath: data/gaussian50-20-1-1.pt
-  num_arm:
+parameters:
+  datapath:
+    value: data/gaussian50-20-1-1.pt
+  num_arm: 
     value: 50
-  dim_context:
+  dim_context: 
     value: 20
   T:
     value: 10000
-  sigma:
+  sigma: 
     value: 0.5
-  func:
+  func: 
     value: linear
-  algo:
-    value: LMCTS
+  algo: 
+    value: EpsGreedy
   model:
     value: linear
-  beta_inv:
-    values: [0.000001, 0.00001, 0.0001, 0.001, 0.01]
-  lr:
-    values: [0.1, 0.02, 0.01, 0.002]
   num_iter:
-    values: [70, 50, 30, 10]
-command:
+    value: 1
+  eps:
+    values: [0.1, 0.05, 0.2, 0.01, 0.4, 0.005, 0.6, 0.001, 0.8, 0.95, 0.9]
+command: 
   - ${env}
   - python3
   - ${program}
 
+name: Linear-eps-greedy
 project: ContextualBandit-simulation
 entity: hzzheng

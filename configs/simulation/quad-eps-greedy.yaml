@@ -1,5 +1,4 @@
 datapath: data/gaussian50-20-1-1.pt
-
 # bandit
 num_arm: 50
 dim_context: 20
@@ -8,15 +7,11 @@ sigma: 1.0
 func: quad
 
 # train
-algo: NeuralTS
-model: neural
-layers: [100]
-act: ReLU
-num_iter: 100
-nu: 0.00001
-reg: 0.1
-lr: 0.001
+algo: EpsGreedy
+model: linear
+num_iter: 1
+eps: 0.9
 
 # log
 project: ContextualBandit-ICML
-group: Quad-NeuralTS
+group: Quad-EpsGreedy

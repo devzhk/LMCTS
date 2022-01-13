@@ -29,6 +29,6 @@ command:
   - python3
   - ${program}
 
-name: LinTS-linear
+name: LinTS-quad
 project: ContextualBandit-sweep-quad
 entity: hzzheng
