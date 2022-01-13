@@ -46,7 +46,7 @@ def construct_agent_cls(config, device):
                     layers=config['layers'],
                     act=config['act'])
         model = model.to(device)
-        optimizer = SGD(model.parameters(), lr=config['lr'])
+        optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         criterion = torch.nn.MSELoss()
         collector = Collector()
         agent = NeuralTS(num_arm, dim_context,
@@ -59,7 +59,7 @@ def construct_agent_cls(config, device):
                     layers=config['layers'],
                     act=config['act'])
         model = model.to(device)
-        optimizer = SGD(model.parameters(), lr=config['lr'])
+        optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         criterion = torch.nn.MSELoss()
         collector = Collector()
         agent = NeuralUCB(num_arm, dim_context,

@@ -17,5 +17,5 @@ nu: 0.000001
 reg: 0.01
 
 # log
-project: ContextualBandit-UCI
+project: ContextualBandit-ICML
 group: Shuttle-NeuralTS

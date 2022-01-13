@@ -1,9 +1,9 @@
 import yaml
 from argparse import ArgumentParser
 from tqdm import tqdm
-import pandas as pd
 
 import torch
+import torch.multiprocessing as mp
 from torch.utils.data import DataLoader
 
 from train_utils.helper import construct_agent_cls
@@ -24,7 +24,7 @@ def run(config, args):
             group=group,
             config=config)
         config = wandb.config
-
+    print('Start running...')
     # Parse configuration
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     T = config['T']
@@ -74,8 +74,7 @@ def run(config, args):
             )
     if wandb and args.log:
         run.finish()
-    df = pd.DataFrame({'reward': reward_history})
-    df.to_csv('log/uci-shuttle-history.csv')
+    print('Done!')
 
 
 if __name__ == '__main__':
@@ -87,6 +86,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)
-    for i in range(args.repeat):
+    if args.repeat == 1:
         run(config, args)
-    print('Done!')
+    else:
+        for i in range(args.repeat):
+            p = mp.Process(target=run, args=(config, args))
+            p.start()
+
