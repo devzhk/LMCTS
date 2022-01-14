@@ -1,9 +1,10 @@
 import yaml
 from argparse import ArgumentParser
 from tqdm import tqdm
+import random
 
 import torch
-import torch.multiprocessing as mp
+import multiprocessing as mp
 from torch.utils.data import DataLoader
 
 from train_utils.helper import construct_agent_cls
@@ -16,6 +17,9 @@ except ImportError:
 
 
 def run(config, args):
+    seed = random.randint(1, 10000)
+    print(f'Random seed: {seed}')
+    torch.manual_seed(seed)
     if args.log and wandb:
         group = config['group'] if 'group' in config else None
         run = wandb.init(
