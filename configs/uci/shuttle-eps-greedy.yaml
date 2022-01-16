@@ -7,15 +7,14 @@ dim_context: 9
 T: 10000
 
 # train
-algo: NeuralUCB
+algo: NeuralEpsGreedy
 model: neural
 act: ReLU
-layers: [100]
-lr: 0.01
+layers: [50, 50, 50]
 num_iter: 100
-nu: 0.00001
-reg: 0.0001
+eps: 0.01
+lr: 0.1
 
 # log
 project: ContextualBandit-ICML
-group: Shuttle-NeuralUCB
+group: Shuttle-NeuralEpsGreedy

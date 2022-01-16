@@ -78,7 +78,7 @@ def construct_agent_cls(config, device):
         agent = NeuralEpsGreedy(num_arm, dim_context,
                                 model, optimizer,
                                 criterion, collector,
-                                config['eps'])
+                                config['eps'], device=device)
     else:
         raise ValueError(f'{algo_name} is not supported. Please choose from '
                          f'LinTS, LMCTS, NeuralTS, NeuralUCB, EpsGreedy')

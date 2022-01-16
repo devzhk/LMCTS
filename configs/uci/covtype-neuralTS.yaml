@@ -8,14 +8,15 @@ dim_context: 54
 T: 15000
 
 # train
-algo: LMCTS
+algo: NeuralTS
 model: neural
-act: LeakyReLU
+act: ReLU
 layers: [100]
-num_iter: 70
-beta_inv: 0.000001
-lr: 0.005
+num_iter: 100
+lr: 0.01
+reg: 0.001
+nu: 0.01
 
 # log
 project: ContextualBandit-ICML
-group: Covertype-LMCTS
+group: Covertype-NeuralTS

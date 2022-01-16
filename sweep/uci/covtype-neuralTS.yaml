@@ -15,26 +15,29 @@ parameters:
   dim_context: 
     value: 54
   T:
-    value: 15000
+    value: 10000
   algo:
-    value: LMCTS
+    value: NeuralTS
   model:
     value: neural
   layers:
     value: [100]
   act:
-    values: ['ReLU', 'LeakyReLU']
-  beta_inv:
-    values: [0.00001, 0.0001, 0.000001, 0.000001]
-  lr:
-    values: [0.01, 0.005, 0.0005, 0.0001]
+    value: 'ReLU'
   num_iter:
-    value: 70
+    value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.1, 0.01, 1.0, 0.001]
+  nu:
+    values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
+
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: LMCTS-covtype
+name: NeuralEpsGreedy-covtype
 project: ContextualBandit-UCI
 entity: hzzheng

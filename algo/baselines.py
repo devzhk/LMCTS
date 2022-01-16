@@ -359,7 +359,7 @@ class NeuralEpsGreedy(_agent):
         self.collector.collect_data(context, arm, reward)
 
     def update_model(self, num_iter=5):
-        if self.step % 50 == 0:
+        if self.step % 5 == 0:
             contexts, arms, rewards = self.collector.fetch_batch()
             contexts = torch.stack(contexts, dim=0)
             rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)

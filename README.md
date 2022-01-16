@@ -42,6 +42,8 @@ python3 run_simulation.py --config_path configs/simulation/gaussian_bandit-linea
 ```bash
 python3 run_classifier.py --config_path configs/uci/stat-shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
 ```
+## Customize configuration file
+
 
 ## Hyperparameter Search
 We use wandb to do grid search. Search space is defined in `.yaml` files under sweep directory. 
@@ -51,7 +53,7 @@ wandb agent [agent id]
 ```
 
 ### TODO:
-- [ ] Neural network for classfication (linear vs neural network)
+- [x] Neural network for classfication (linear vs neural network)
 - [x] update results in fixed arm setting
 - [ ] profile the computation cost of arm selection and inner loop update
 - [ ] eps decay schedule: c/\sqrt{t}
@@ -63,7 +65,8 @@ Baseline:
 - [x] Neural greedy
 - [x] Neural epsilon-greedy
 
-# 
+# Logistic bandit setting 
+- [ ] LMCTS
 - [ ] UCB-GML (provably optimal)
 - [ ] TS-GML
-- Eps-greedy
+- [ ] Eps-greedy

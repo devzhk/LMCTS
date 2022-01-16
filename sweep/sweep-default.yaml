@@ -1,10 +1,11 @@
-# example
 program: run_simulation.py
-method: random
+method: grid
 metric:
   goal: minimize
   name: Regret
-datapath: data/gaussian50-20-1-1.pt
+parameters:
+  datapath:
+    value: data/gaussian50-20-1-1.pt
   num_arm:
     value: 50
   dim_context:

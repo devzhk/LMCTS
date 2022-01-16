@@ -10,12 +10,12 @@ func: quad
 # train
 algo: NeuralTS
 model: neural
-layers: [100]
+layers: [20, 20, 20]
 act: ReLU
 num_iter: 100
-nu: 0.00001
-reg: 0.1
-lr: 0.001
+nu: 0.001
+reg: 1.0
+lr: 0.01
 
 # log
 project: ContextualBandit-ICML

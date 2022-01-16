@@ -21,20 +21,20 @@ parameters:
   layers:
     value: [100]
   act:
-    value: 'ReLU'
+    value: ReLU
   num_iter:
     value: 100
   lr:
     value: 0.01
   reg:
-    values: [0.001, 0.01, 0.1, 1.0]
+    values: [0.0001, 0.001, 0.01, 0.1]
   nu:
-    values: [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+    values: [0.001, 0.0001, 0.00001, 0.000001]
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: Shuttle-NeuralTS
+name: Shuttle-NeuralUCB
 project: ContextualBandit-UCI
 entity: hzzheng

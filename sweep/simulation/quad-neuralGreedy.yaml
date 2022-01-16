@@ -23,9 +23,9 @@ parameters:
   layers:
     value: [20, 20, 20]
   act:
-    value: ReLU
+    value: LeakyReLU
   num_iter:
-    value: 1000
+    value: 100
   lr:
     values: [0.1, 0.01, 0.001]
   eps:

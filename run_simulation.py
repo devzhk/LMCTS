@@ -1,8 +1,10 @@
+import random
 import yaml
 from argparse import ArgumentParser
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import multiprocessing as mp
 
 import torch
 from torch.utils.data import DataLoader
@@ -18,6 +20,9 @@ except ImportError:
 
 
 def run(config, args):
+    seed = random.randint(1, 10000)
+    print(f'Random seed: {seed}')
+    torch.manual_seed(seed)
     if args.log and wandb:
         group = config['group'] if 'group' in config else None
         run = wandb.init(
@@ -79,18 +84,21 @@ def run(config, args):
                       )
     if wandb and args.log:
         run.finish()
-    df.to_csv(f'log/{algo_name}-regrets-5020.csv')
+    print('Done!')
 
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
-                        default='configs/sweep-default.yaml')
+                        default='sweep/sweep-default.yaml')
     parser.add_argument('--log', action='store_true', default=True)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:
         config = yaml.load(stream, yaml.FullLoader)
-    for i in range(args.repeat):
+    if args.repeat == 1:
         run(config, args)
-    print('Done!')
+    else:
+        for i in range(args.repeat):
+            p = mp.Process(target=run, args=(config, args))
+            p.start()

@@ -5,36 +5,34 @@ metric:
   name: Regret
 parameters:
   data_name:
-    value: covertype
+    value: shuttle
   version:
-    value: 3
-  num_data:
-    value: 15000
+    value: 1
   num_arm: 
     value: 7
   dim_context: 
-    value: 54
+    value: 9
   T:
-    value: 15000
+    value: 10000
   algo:
-    value: LMCTS
+    value: NeuralEpsGreedy
   model:
     value: neural
   layers:
-    value: [100]
+    value: [50, 50, 50]
   act:
-    values: ['ReLU', 'LeakyReLU']
-  beta_inv:
-    values: [0.00001, 0.0001, 0.000001, 0.000001]
+    values: ['ReLU', 'LeakyReLU', 'elu']
+  eps:
+    values: [0.1, 0.2, 0.01, 0.4, 0.002]
   lr:
-    values: [0.01, 0.005, 0.0005, 0.0001]
+    values: [0.01, 0.1, 0.001]
   num_iter:
-    value: 70
+    value: 100
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: LMCTS-covtype
+name: EpsGreedy-shuttle
 project: ContextualBandit-UCI
 entity: hzzheng
