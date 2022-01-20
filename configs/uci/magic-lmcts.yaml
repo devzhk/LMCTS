@@ -1,0 +1,22 @@
+data_name: MagicTelescope
+version: 1
+num_data: 19000
+
+# bandit
+num_arm: 2
+dim_context: 10
+T: 10000
+
+# train
+algo: LMCTS
+model: neural
+act: LeakyReLU
+layers: [100]
+loss: L2
+num_iter: 50
+beta_inv: 0.01
+lr: 0.001
+
+# log
+project: ContextualBandit-UCI
+group: Magic-LMCTS

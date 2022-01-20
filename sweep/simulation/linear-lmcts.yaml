@@ -31,5 +31,6 @@ command:
   - python3
   - ${program}
 
+name: Linear-LMCTS
 project: ContextualBandit-simulation
 entity: hzzheng

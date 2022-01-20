@@ -1,14 +1,31 @@
+import pandas as pd
 from sklearn.datasets import fetch_openml
+from sklearn.preprocessing import OrdinalEncoder
 import numpy as np
+import pandas
 
 import torch
 from torch.utils.data import Dataset
 
 
+continuous_dataset = ['shuttle', 'covertype']
+
+
+def remove_nan(arr):
+    '''
+    Drop the rows that contain Nan
+    '''
+    df = pd.DataFrame(arr)
+    df = df.dropna()
+    return df.to_numpy()
+
+
 class SimData(Dataset):
-    def __init__(self, datapath):
+    def __init__(self, datapath, num_data=None):
         data = torch.load(datapath)
         self.context = data['context']
+        if num_data:
+            self.context = self.context[0:num_data]
 
     def __getitem__(self, idx):
         return self.context[idx]
@@ -18,11 +35,11 @@ class SimData(Dataset):
 
 
 class UCI(Dataset):
-    def __init__(self, datapath, dim_context, num_arms=2):
+    def __init__(self, datapath, dim_context, num_data=None, num_arms=2):
         super(UCI, self).__init__()
         self.dim_context = dim_context
         self.num_arms = num_arms
-        self.loaddata(datapath, dim_context)
+        self.loaddata(datapath, dim_context, num_data)
 
     def __getitem__(self, idx):
         x = self.context[idx]
@@ -34,11 +51,14 @@ class UCI(Dataset):
     def __len__(self):
         return self.label.shape[0]
 
-    def loaddata(self, datapath, dim_context):
+    def loaddata(self, datapath, dim_context, num_data=None):
         data = np.loadtxt(datapath)
         self.label = (data[:, -1] - 1).astype(int)
         # data preprocessing
         context = data[:, 0:dim_context].astype(np.float32)
+        if num_data:
+            context = context[0:num_data]
+            self.label = self.label[0:num_data]
         # context = context - context.mean(axis=0, keepdims=True)
         self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
         self.context = torch.tensor(self.context)
@@ -63,12 +83,23 @@ class AutoUCI(Dataset):
 
     def loaddata(self, name, version, num_data):
         cxt, label = fetch_openml(name=name, version=version, data_home='data', return_X_y=True)
-        self.label = np.array(label).astype(int) - 1
+
         context = np.array(cxt).astype(np.float32)
         if num_data:
-            self.label = self.label[0:num_data]
+            label = label[0:num_data]
             context = context[0:num_data, :]
+        # encode label
+        if name not in continuous_dataset:
+            encoder = OrdinalEncoder(dtype=int)
+            label = encoder.fit_transform(label.reshape((-1, 1)))
 
+            # Drop rows that contain Nan
+            raw = np.concatenate([context, label], axis=1)
+            raw = remove_nan(raw)
+            self.label = raw[:, -1]
+            context = raw[:, :-1]
+        else:
+            self.label = np.array(label).astype(int) - 1
         self.context = context / np.linalg.norm(context, axis=1, keepdims=True)
         self.context = torch.tensor(self.context)
 

@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from train_utils.helper import construct_agent_sim
 
 from train_utils.dataset import SimData
-from train_utils.bandit import LinearBandit, QuadBandit
+from train_utils.bandit import LinearBandit, QuadBandit, LogisticBandit
 try:
     import wandb
 except ImportError:
@@ -38,8 +38,8 @@ def run(config, args):
     theta = data['theta'].to(device)
     sigma = config['sigma']
     T = config['T']
-    algo_name = config['algo']
-    # Create dataset
+
+    # Create bandit from dataset
     dataset = SimData(config['datapath'])
     loader = DataLoader(dataset, shuffle=False)
     loader = iter(loader)
@@ -47,6 +47,8 @@ def run(config, args):
         bandit = LinearBandit(theta=theta, sigma=sigma)
     elif config['func'] == 'quad':
         bandit = QuadBandit(theta=theta, sigma=sigma)
+    elif config['func'] == 'logistic':
+        bandit = LogisticBandit(theta=theta, sigma=sigma)
     else:
         raise ValueError('Only linear or quadratic function')
     print(config)

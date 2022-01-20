@@ -38,6 +38,6 @@ command:
   - python3
   - ${program}
 
-name: NeuralEpsGreedy-covtype
+name: NeuralTS-covtype
 project: ContextualBandit-UCI
 entity: hzzheng

@@ -1,0 +1,21 @@
+data_name: adult
+version: 2
+num_data: 20000
+
+# bandit
+num_arm: 2
+dim_context: 14
+T: 10000
+
+# train
+algo: NeuralEpsGreedy
+model: neural
+act: ReLU
+layers: [50, 50, 50]
+num_iter: 100
+eps: 0.01
+lr: 0.001
+
+# log
+project: ContextualBandit-UCI
+group: Adult-NeuralEpsGreedy

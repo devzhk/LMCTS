@@ -5,38 +5,39 @@ metric:
   name: Regret
 parameters:
   data_name:
-    value: covertype
+    value: adult
   version:
-    value: 3
+    value: 2
   num_data:
-    value: 15000
+    value: 20000
   num_arm: 
-    value: 7
+    value: 2
   dim_context: 
-    value: 54
+    value: 14
   T:
-    value: 15000
+    value: 10000
   algo:
-    value: LMCTS
+    value: NeuralTS
   model:
     value: neural
   layers:
     value: [100]
-  loss:
-    value: BCE
   act:
-    values: ['ReLU', 'LeakyReLU', 'elu']
-  beta_inv:
-    values: [0.001, 0.00001, 0.0001, 0.000001, 0.0000001]
-  lr:
-    values: [0.01, 0.005, 0.001]
+    values: ['ReLU', 'LeakyReLU']
   num_iter:
     value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.1, 0.01, 1.0, 0.001]
+  nu:
+    values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
+
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: LMCTS-covtype-BCE
+name: Adult-NeuralTS
 project: ContextualBandit-UCI
 entity: hzzheng

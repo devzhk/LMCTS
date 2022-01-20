@@ -1,0 +1,22 @@
+datapath: data/gaussian50-20-1-1.pt
+
+# bandit
+num_arm: 50
+dim_context: 20
+T: 10000
+sigma: 1.0
+func: quad
+
+# train
+algo: NeuralTS
+model: neural
+layers: [20, 20, 20]
+act: ReLU
+num_iter: 100
+nu: 0.01
+reg: 0.001
+lr: 0.01
+
+# log
+project: ContextualBandit-ICML
+group: Quad-NeuralUCB

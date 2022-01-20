@@ -7,11 +7,11 @@ sigma: 0.5
 func: linear
 
 # train
-algo: EpsGreedy
+algo: LinUCB
 model: linear
 num_iter: 1
-eps: 0.1
+nu: 0.001
 
 # log
 project: ContextualBandit-ICML
-group: Linear-EpsGreedy
+group: Linear-LinUCB

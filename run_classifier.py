@@ -84,7 +84,7 @@ def run(config, args):
 if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
-                        default='configs/uci/stat-shuttle-lmcts.yaml')
+                        default='configs/uci/shuttle-lmcts.yaml')
     parser.add_argument('--log', action='store_true', default=True)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()

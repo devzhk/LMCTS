@@ -5,17 +5,17 @@ metric:
   name: Regret
 parameters:
   data_name:
-    value: covertype
+    value: adult
   version:
-    value: 3
+    value: 2
   num_data:
-    value: 15000
+    value: 20000
   num_arm: 
-    value: 7
+    value: 2
   dim_context: 
-    value: 54
+    value: 14
   T:
-    value: 15000
+    value: 10000
   algo:
     value: LMCTS
   model:
@@ -23,20 +23,20 @@ parameters:
   layers:
     value: [100]
   loss:
-    value: BCE
+    value: L2
   act:
-    values: ['ReLU', 'LeakyReLU', 'elu']
+    values: ['ReLU', 'LeakyReLU']
   beta_inv:
-    values: [0.001, 0.00001, 0.0001, 0.000001, 0.0000001]
+    values: [0.001, 0.00001, 0.0001, 0.000001]
   lr:
-    values: [0.01, 0.005, 0.001]
+    values: [0.005, 0.001, 0.0005]
   num_iter:
-    value: 100
+    values: [30, 50, 70]
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: LMCTS-covtype-BCE
+name: Adult-LMCTS
 project: ContextualBandit-UCI
 entity: hzzheng

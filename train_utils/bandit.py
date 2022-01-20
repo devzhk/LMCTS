@@ -1,8 +1,9 @@
 '''
 Synthetic contextual bandits
 '''
-import torch
 
+import torch
+import random
 
 '''
 Linear bandit
@@ -73,7 +74,8 @@ class LogisticBandit(object):
 
         '''
         prod = X @ self.theta
-        h = torch.sigmoid(prod)
-        reward = h[arm] + self.sigma * torch.randn(1, device=X.device)
+        probs = torch.sigmoid(prod)
+        h = torch.bernoulli(probs)
+        reward = h[arm]
         regret = h.max() - h[arm]
         return reward, regret

@@ -33,40 +33,34 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 
 ## How to run 
 ### Synthetic data
-To run bandit algorithm on synthetic data
+To run bandit algorithm on synthetic data, use
 ```bash
-python3 run_simulation.py --config_path configs/simulation/gaussian_bandit-linear-LMCTS.yaml --repeat [number of experiments to repeat] --log 
+python3 run_simulation.py --config_path configs/simulation/linear-LMCTS.yaml --repeat [number of experiments to repeat] --log 
 ```
+Configuration file examples:
+- Linear bandit: `configs/simulation/linear-LMCTS.yaml`
+- Quadratic bandit: `configs/simulation/quad-LMCTS.yaml`
+- Logistic bandit: `configs/simulation/logistic-LMCTS.yaml`
+
 
 ### UCI datasets
+To run bandit algorithm on classification datasets, use
 ```bash
-python3 run_classifier.py --config_path configs/uci/stat-shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
+python3 run_classifier.py --config_path configs/uci/shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
 ```
 ## Customize configuration file
 
 
 ## Hyperparameter Search
 We use wandb to do grid search. Search space is defined in `.yaml` files under sweep directory. 
+Example: 
 ```bash
 wandb sweep sweep/uci/shuttle-lmcts.yaml
 wandb agent [agent id]
 ```
 
 ### TODO:
-- [x] Neural network for classfication (linear vs neural network)
-- [x] update results in fixed arm setting
-- [ ] profile the computation cost of arm selection and inner loop update
-- [ ] eps decay schedule: c/\sqrt{t}
-Baseline: 
-- [x] Neural Thompson Sampling
-- [x] Neural UCB
-- [x] LinTS
-- [ ] Neural linear
-- [x] Neural greedy
-- [x] Neural epsilon-greedy
-
-# Logistic bandit setting 
-- [ ] LMCTS
-- [ ] UCB-GML (provably optimal)
-- [ ] TS-GML
-- [ ] Eps-greedy
+- [ ] Fixed arm linear bandit
+- [ ] Fixed arm logistic bandit
+- [ ] Adult, Magic
+- [ ] 

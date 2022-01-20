@@ -10,12 +10,12 @@ T: 15000
 # train
 algo: NeuralEpsGreedy
 model: neural
-act: elu
-layers: [64, 64, 64, 64]
+act: ReLU
+layers: [100]
 num_iter: 100
-eps: 0.1
+eps: 0.4
 lr: 0.1
 
 # log
-project: ContextualBandit-UCI
+project: ContextualBandit-ICML
 group: Covertype-NeuralEpsGreedy

@@ -1,0 +1,22 @@
+data_name: adult
+version: 2
+num_data: 20000
+
+# bandit
+num_arm: 2
+dim_context: 14
+T: 10000
+
+# train
+algo: LMCTS
+model: neural
+act: LeakyReLU
+layers: [100]
+loss: L2
+num_iter: 100
+beta_inv: 0.00001
+lr: 0.001
+
+# log
+project: ContextualBandit-ICML
+group: Magic-LMCTS

@@ -1,0 +1,19 @@
+datapath: data/gaussian50-20-1-1.pt
+# bandit
+num_arm: 50
+dim_context: 20
+T: 10000
+sigma: 0.0
+func: logistic
+
+# train
+algo: LMCTS
+model: linear
+loss: Logistic
+num_iter: 30
+beta_inv: 0.00001
+lr: 0.1
+
+# log
+project: ContextualBandit-Simulation
+group: Logistic-LMCTS

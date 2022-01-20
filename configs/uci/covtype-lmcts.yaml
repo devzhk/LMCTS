@@ -12,9 +12,10 @@ algo: LMCTS
 model: neural
 act: LeakyReLU
 layers: [100]
-num_iter: 70
+loss: BCE
+num_iter: 100
 beta_inv: 0.000001
-lr: 0.005
+lr: 0.01
 
 # log
 project: ContextualBandit-ICML
