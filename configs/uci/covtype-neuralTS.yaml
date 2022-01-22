@@ -12,11 +12,12 @@ algo: NeuralTS
 model: neural
 act: ReLU
 layers: [100]
+loss: BCE
 num_iter: 100
 lr: 0.01
 reg: 0.001
 nu: 0.01
 
 # log
-project: ContextualBandit-ICML
+project: ContextualBandit-UCI
 group: Covertype-NeuralTS

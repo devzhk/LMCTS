@@ -21,9 +21,9 @@ parameters:
   model:
     value: neural
   layers:
-    value: [100]
+    value: [20, 20, 20]
   loss:
-    value: L2
+    value: BCE
   act:
     values: ['ReLU', 'LeakyReLU']
   beta_inv:
@@ -31,7 +31,7 @@ parameters:
   lr:
     values: [0.005, 0.001, 0.0005]
   num_iter:
-    values: [30, 50, 70]
+    value: 100
 command: 
   - ${env}
   - python3

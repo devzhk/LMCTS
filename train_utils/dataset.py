@@ -5,10 +5,16 @@ import numpy as np
 import pandas
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 
 continuous_dataset = ['shuttle', 'covertype']
+
+
+def sample_data(dataloader):
+    while True:
+        for batch in dataloader:
+            yield batch
 
 
 def remove_nan(arr):
@@ -116,19 +122,19 @@ class Collector(Dataset):
         self.chosen_arms = []
 
     def __getitem__(self, key):
-        return self.context[key], self.chosen_arms[key], self.rewards[key]
+        return self.context[key], self.rewards[key]
 
     def __len__(self):
         return len(self.rewards)
 
     def collect_data(self, context, arm, reward):
-        self.context.append(context)
+        self.context.append(context.cpu())
         self.chosen_arms.append(arm)
         self.rewards.append(reward)
 
     def fetch_batch(self, batch_size=None):
         if batch_size is None or batch_size > len(self.rewards):
-            return self.context, self.chosen_arms, self.rewards
+            return self.context, self.rewards
         else:
             offset = np.random.randint(0, len(self.rewards) - batch_size)
             return self.context[offset:offset + batch_size], self.rewards[offset: offset + batch_size]

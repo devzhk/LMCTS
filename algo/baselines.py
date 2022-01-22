@@ -1,8 +1,11 @@
 import PIL.GimpGradientFile
 import torch
+from torch.utils.data import DataLoader
 from torch.distributions.multivariate_normal import MultivariateNormal
 import numpy as np
 from .base import _agent
+
+from train_utils.dataset import sample_data
 
 '''
 Linear Thompson Sampling method
@@ -201,19 +204,27 @@ class NeuralTS(_agent):
                  criterion,         # loss function
                  collector,         # context and reward collector
                  nu,                # exploration variance
-                 m=1,                 # Width of neural network
+                 batch_size=None,   # batchsize to update nn
+                 image=False,       # image dataset?
+                 reduce=None,       # reduce update frequency
                  reg=1.0,           # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralTS'):
         super(NeuralTS, self).__init__(name)
-
+        self.image = image
+        self.reduce = reduce
         self.num_arm = num_arm
         self.dim_context = dim_context
 
         self.model = model
-        self.m = m
         self.optimizer = optimizer
         self.criterion = criterion
+        if batch_size:
+            self.loader = DataLoader(collector, batch_size=batch_size)
+            self.batchsize = batch_size
+        else:
+            self.loader = None
+            self.batchsize = None
         self.collector = collector
         self.nu = nu
         self.reg = reg
@@ -224,7 +235,7 @@ class NeuralTS(_agent):
         self.clear()
 
     def clear(self):
-        self.model.init_weights()
+        # self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
@@ -234,7 +245,10 @@ class NeuralTS(_agent):
         rewards = []
         for i in range(self.num_arm):
             self.model.zero_grad()
-            ri = self.model(context[i])
+            if self.image:
+                ri = self.model(context[i:i+1,:, :,:])
+            else:
+                ri = self.model(context[i])
             ri.backward()
 
             grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
@@ -253,26 +267,48 @@ class NeuralTS(_agent):
 
     def update_model(self, num_iter):
         self.step += 1
+        if self.reduce:
+            if self.step % self.reduce != 0:
+                return
+
         for p in self.optimizer.param_groups:
             p['weight_decay'] = self.reg / self.step
 
-        contexts, arms, rewards = self.collector.fetch_batch()
-        contexts = torch.stack(contexts, dim=0)
-        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-        self.model.train()
-        for i in range(num_iter):
-            self.model.zero_grad()
-            pred = self.model(contexts).squeeze(dim=1)
-            loss = self.criterion(pred, rewards)
-            loss.backward()
-            self.optimizer.step()
-            if loss.item() < 1e-3:
-                break
-        assert not torch.isnan(loss), 'Loss is Nan!'
+        # update using minibatch
+        if self.batchsize < self.step:
+            ploader = sample_data(self.loader)
+            for i in range(num_iter):
+                contexts, rewards = next(ploader)
+                contexts = contexts.to(self.device)
+                rewards = rewards.to(dtype=torch.float32, device=self.device)
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), 'Loss is Nan!'
+        else:
+            # update using full batch
+            contexts, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0).to(self.device)
+            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            self.model.train()
+            for i in range(num_iter):
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+                if loss.item() < 1e-3:
+                    break
+            assert not torch.isnan(loss), 'Loss is Nan!'
 
         # update the design matrix
         self.model.zero_grad()
-        re = self.model(self.last_cxt)
+        if self.image:
+            re = self.model(self.last_cxt.unsqueeze(0))
+        else:
+            re = self.model(self.last_cxt)
         re.backward()
         grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
         self.Design += grad * grad
@@ -292,17 +328,25 @@ class NeuralUCB(_agent):
                  criterion,         # loss function
                  collector,         # context and reward collector
                  nu,                # exploration variance
-                 m=1,                 # Width of neural network
+                 batch_size=None,   # batchsize to update nn
+                 image=False,       # image dataset?
+                 reduce=None,       # reduce update frequency
                  reg=1.0,           # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralUCB'):
         super(NeuralUCB, self).__init__(name)
-
+        self.image = image
+        self.reduce = reduce
         self.num_arm = num_arm
         self.dim_context = dim_context
 
         self.model = model
-        self.m = m
+        if batch_size:
+            self.loader = DataLoader(collector, batch_size=batch_size)
+            self.batchsize = batch_size
+        else:
+            self.loader = None
+            self.batchsize = None
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
@@ -315,7 +359,7 @@ class NeuralUCB(_agent):
         self.clear()
 
     def clear(self):
-        self.model.init_weights()
+        # self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
@@ -325,7 +369,10 @@ class NeuralUCB(_agent):
         grad_list = []
         for i in range(self.num_arm):
             self.model.zero_grad()
-            ri = self.model(context[i])
+            if self.image:
+                ri = self.model(context[i:i + 1, :, :, :])
+            else:
+                ri = self.model(context[i])
             ri.backward()
 
             grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
@@ -346,22 +393,39 @@ class NeuralUCB(_agent):
 
     def update_model(self, num_iter):
         self.step += 1
+        if self.reduce:
+            if self.step % self.reduce != 0:
+                return
         for p in self.optimizer.param_groups:
             p['weight_decay'] = self.reg / self.step
 
-        contexts, arms, rewards = self.collector.fetch_batch()
-        contexts = torch.stack(contexts, dim=0)
-        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-        self.model.train()
-        for i in range(num_iter):
-            self.model.zero_grad()
-            pred = self.model(contexts).squeeze(dim=1)
-            loss = self.criterion(pred, rewards)
-            loss.backward()
-            self.optimizer.step()
-            if loss.item() < 1e-3:
-                break
-        assert not torch.isnan(loss), 'Loss is Nan!'
+        # update using minibatch
+        if self.batchsize < self.step:
+            ploader = sample_data(self.loader)
+            for i in range(num_iter):
+                contexts, rewards = next(ploader)
+                contexts = contexts.to(self.device)
+                rewards = rewards.to(dtype=torch.float32, device=self.device)
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), 'Loss is Nan!'
+        else:
+            contexts, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0).to(self.device)
+            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            self.model.train()
+            for i in range(num_iter):
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+                if loss.item() < 1e-3:
+                    break
+            assert not torch.isnan(loss), 'Loss is Nan!'
 
 
 '''
@@ -375,24 +439,33 @@ class NeuralEpsGreedy(_agent):
                  optimizer,
                  criterion,
                  collector,
+                 batch_size=None,       # batchsize to update nn
                  eps=0.0,               # 0<=eps<1, eps=0 -> neural greedy, otherwise -> neural eps-greedy
+                 reduce=None,           # reduce update frequency
                  device='cpu',
                  name='NeuralEpsGreedy'):
         super(NeuralEpsGreedy, self).__init__(name)
         self.num_arm = num_arm
         self.dim_context = dim_context
+        self.reduce = reduce
 
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
+        if batch_size:
+            self.loader = DataLoader(collector, batch_size=batch_size)
+            self.batchsize = batch_size
+        else:
+            self.loader = None
+            self.batchsize = None
 
         self.eps = eps
         self.step = 0
         self.device = device
 
     def clear(self):
-        self.model.init_weights()
+        # self.model.init_weights()
         self.collector.clear()
         self.step = 0
 
@@ -410,12 +483,30 @@ class NeuralEpsGreedy(_agent):
         self.collector.collect_data(context, arm, reward)
 
     def update_model(self, num_iter=5):
-        if self.step % 5 == 0:
-            contexts, arms, rewards = self.collector.fetch_batch()
-            contexts = torch.stack(contexts, dim=0)
+        self.step += 1
+        self.model.train()
+        if self.reduce:
+            if self.step % self.reduce != 0:
+                return
+
+        if self.batchsize < self.step:
+            ploader = sample_data(self.loader)
+            for i in range(num_iter):
+                contexts, rewards = next(ploader)
+                contexts = contexts.to(self.device)
+                rewards = rewards.to(dtype=torch.float32, device=self.device)
+                # rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), "Loss is Nan!"
+        else:
+            contexts, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0).to(self.device)
             rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-            # TODO: adapt code for minibatch training
-            self.model.train()
+
             for i in range(num_iter):
                 self.model.zero_grad()
                 pred = self.model(contexts).squeeze(dim=1)
@@ -423,4 +514,3 @@ class NeuralEpsGreedy(_agent):
                 loss.backward()
                 self.optimizer.step()
             assert not torch.isnan(loss), "Loss is Nan!"
-        self.step += 1
