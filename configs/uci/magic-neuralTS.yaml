@@ -8,15 +8,14 @@ dim_context: 10
 T: 10000
 
 # train
-algo: LMCTS
+algo: NeuralTS
 model: neural
 act: ReLU
 layers: [20, 20, 20]
-loss: BCE
 num_iter: 100
-beta_inv: 0.001
-lr: 0.005
+eps: 0.1
+lr: 0.1
 
 # log
 project: ContextualBandit-ICML
-group: Magic-LMCTS
+group: Magic-NeuralEpsGreedy

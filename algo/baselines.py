@@ -275,7 +275,7 @@ class NeuralTS(_agent):
             p['weight_decay'] = self.reg / self.step
 
         # update using minibatch
-        if self.batchsize < self.step:
+        if self.batchsize and self.batchsize < self.step:
             ploader = sample_data(self.loader)
             for i in range(num_iter):
                 contexts, rewards = next(ploader)
@@ -400,7 +400,7 @@ class NeuralUCB(_agent):
             p['weight_decay'] = self.reg / self.step
 
         # update using minibatch
-        if self.batchsize < self.step:
+        if self.batchsize and self.batchsize < self.step:
             ploader = sample_data(self.loader)
             for i in range(num_iter):
                 contexts, rewards = next(ploader)
@@ -439,8 +439,8 @@ class NeuralEpsGreedy(_agent):
                  optimizer,
                  criterion,
                  collector,
-                 batch_size=None,       # batchsize to update nn
                  eps=0.0,               # 0<=eps<1, eps=0 -> neural greedy, otherwise -> neural eps-greedy
+                 batch_size=None,       # batchsize to update nn
                  reduce=None,           # reduce update frequency
                  device='cpu',
                  name='NeuralEpsGreedy'):
@@ -489,7 +489,7 @@ class NeuralEpsGreedy(_agent):
             if self.step % self.reduce != 0:
                 return
 
-        if self.batchsize < self.step:
+        if self.batchsize and self.batchsize < self.step:
             ploader = sample_data(self.loader)
             for i in range(num_iter):
                 contexts, rewards = next(ploader)

@@ -17,7 +17,7 @@ parameters:
   T:
     value: 10000
   algo:
-    value: NeuralTS
+    value: NeuralUCB
   model:
     value: neural
   layers:
@@ -38,6 +38,6 @@ command:
   - python3
   - ${program}
 
-name: Magic-NeuralTS
+name: Magic-NeuralUCB
 project: ContextualBandit-UCI
 entity: hzzheng

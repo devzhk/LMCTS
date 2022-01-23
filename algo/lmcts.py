@@ -52,7 +52,7 @@ class LMCTS(_agent):
                 return
         self.model.train()
         # update using minibatch
-        if self.batchsize < self.step:
+        if self.batchsize and self.batchsize < self.step:
             if self.step % (10 * self.batchsize) == 0:
                 self.optimizer.lr = 10 * self.base_lr / self.step
             ploader = sample_data(self.loader)

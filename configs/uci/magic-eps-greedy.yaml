@@ -11,11 +11,11 @@ T: 10000
 algo: NeuralEpsGreedy
 model: neural
 act: ReLU
-layers: [50, 50]
+layers: [20, 20, 20]
 num_iter: 100
-eps: 0.01
-lr: 0.01
+eps: 0.05
+lr: 0.1
 
 # log
-project: ContextualBandit-UCI
+project: ContextualBandit-ICML
 group: Magic-NeuralEpsGreedy
