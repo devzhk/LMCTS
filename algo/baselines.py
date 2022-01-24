@@ -46,7 +46,7 @@ class LinTS(_agent):
         '''
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
-            cov = self.DesignInv + 0.001 * torch.eye(self.dim_context, device=self.device)
+            cov = self.DesignInv + 0.00001 * torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
         dist = MultivariateNormal(self.theta.view(-1), self.nu ** 2 * cov)
@@ -106,7 +106,7 @@ class LinUCB(_agent):
         '''
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
-            cov = self.DesignInv + 0.001 * torch.eye(self.dim_context, device=self.device)
+            cov = self.DesignInv + 0.00001 * torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
 

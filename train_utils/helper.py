@@ -21,6 +21,8 @@ def construct_agent_cls(config, device):
     dim_context = config['dim_context']
     num_arm = config['num_arm']
     algo_name = config['algo']
+    batchsize = config['batchsize'] if 'batchsize' in config else None
+    reduce = config['reduce'] if 'reduce' in config else None
     if algo_name == 'LinTS':
         nu = config['nu'] * np.sqrt(num_arm * dim_context * np.log(T))
         agent = LinTS(num_arm, num_arm * dim_context, nu, reg=1.0, device=device)
@@ -49,7 +51,11 @@ def construct_agent_cls(config, device):
 
         collector = Collector()
         agent = LMCTS(model, optimizer, criterion,
-                      collector, name='LMCTS', device=device)
+                      collector,
+                      name='LMCTS',
+                      batch_size=batchsize,
+                      reduce=reduce,
+                      device=device)
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])
     elif algo_name == 'NeuralTS':
@@ -68,6 +74,8 @@ def construct_agent_cls(config, device):
                          model, optimizer,
                          criterion, collector,
                          config['nu'], reg=config['reg'],
+                         batch_size=batchsize,
+                         reduce=reduce,
                          device=device)
     elif algo_name == 'NeuralUCB':
         model = FCN(1, dim_context * num_arm,
@@ -85,6 +93,8 @@ def construct_agent_cls(config, device):
                           model, optimizer,
                           criterion, collector,
                           config['nu'], reg=config['reg'],
+                          batch_size=batchsize,
+                          reduce=reduce,
                           device=device)
     elif algo_name == 'NeuralEpsGreedy':
         model = FCN(1, dim_context * num_arm,
@@ -101,7 +111,10 @@ def construct_agent_cls(config, device):
         agent = NeuralEpsGreedy(num_arm, dim_context,
                                 model, optimizer,
                                 criterion, collector,
-                                config['eps'], device=device)
+                                config['eps'],
+                                batch_size=batchsize,
+                                reduce=reduce,
+                                device=device)
     else:
         raise ValueError(f'{algo_name} is not supported. Please choose from '
                          f'LinTS, LMCTS, NeuralTS, NeuralUCB, EpsGreedy')
@@ -117,6 +130,7 @@ def construct_agent_sim(config, device):
     algo_name = config['algo']
     sigma = config['sigma']
     T = config['T']
+    batchsize = config['batchsize'] if 'batchsize' in config else None
     if algo_name == 'LinTS':
         nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
@@ -147,6 +161,7 @@ def construct_agent_sim(config, device):
         agent = LMCTS(model, optimizer, criterion,
                       collector,
                       name='LMCTS',
+                      batch_size=batchsize,
                       device=device)
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])

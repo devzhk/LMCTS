@@ -11,11 +11,13 @@ T: 10000
 algo: NeuralTS
 model: neural
 act: ReLU
-layers: [20, 20, 20]
+layers: [100]
 num_iter: 100
-eps: 0.1
-lr: 0.1
+lr: 0.01
+reg: 0.00001
+nu: 0.00001
+
 
 # log
 project: ContextualBandit-ICML
-group: Magic-NeuralEpsGreedy
+group: Magic-NeuralTS

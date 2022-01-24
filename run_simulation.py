@@ -11,8 +11,10 @@ from torch.utils.data import DataLoader
 
 from train_utils.helper import construct_agent_sim
 
-from train_utils.dataset import SimData
+from train_utils.dataset import SimData, sample_data
 from train_utils.bandit import LinearBandit, QuadBandit, LogisticBandit
+
+
 try:
     import wandb
 except ImportError:
@@ -40,9 +42,11 @@ def run(config, args):
     T = config['T']
 
     # Create bandit from dataset
-    dataset = SimData(config['datapath'])
+    index = config['index'] if 'index' in config else 0
+    num_data = config['num_data'] if 'num_data' in config else None
+    dataset = SimData(config['datapath'], num_data=num_data, index=index)
     loader = DataLoader(dataset, shuffle=False)
-    loader = iter(loader)
+    loader = sample_data(loader)
     if config['func'] == 'linear':
         bandit = LinearBandit(theta=theta, sigma=sigma)
     elif config['func'] == 'quad':
@@ -81,9 +85,6 @@ def run(config, args):
                     'Regret': accum_regret
                 }
             )
-    df = pd.DataFrame({'regret': regret_history,
-                       'Step': np.arange(config['T'])}
-                      )
     if wandb and args.log:
         run.finish()
     print('Done!')
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='sweep/sweep-default.yaml')
-    parser.add_argument('--log', action='store_true', default=True)
+    parser.add_argument('--log', action='store_true', default=False)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:

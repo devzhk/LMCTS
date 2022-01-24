@@ -19,4 +19,4 @@ lr: 0.001
 
 # log
 project: ContextualBandit-ICML
-group: Magic-LMCTS
+group: Adult-LMCTS

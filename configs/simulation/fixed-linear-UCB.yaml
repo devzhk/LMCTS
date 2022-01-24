@@ -3,13 +3,13 @@ datapath: data/gaussian50-20-1-1.pt
 num_arm: 50
 dim_context: 20
 T: 5000
-index: 6
+index: 0
 num_data: 1
 func: linear
 sigma: 1.0
 
 # train
-algo: LinTS
+algo: LinUCB
 model: linear
 
 num_iter: 1
@@ -17,4 +17,4 @@ nu: 0.01
 
 # log
 project: ContextualBandit-ICML
-group: Fixed-Linear-LinTS
+group: Fixed-Linear-LinUCB

@@ -2,19 +2,19 @@ datapath: data/gaussian50-20-1-1.pt
 # bandit
 num_arm: 50
 dim_context: 20
+index: 0
 T: 5000
-index: 6
-num_data: 1
-func: linear
 sigma: 1.0
+func: linear
 
 # train
-algo: LinTS
+algo: LMCTS
 model: linear
-
-num_iter: 1
-nu: 0.01
+num_data: 1
+lr: 0.05
+num_iter: 30
+beta_inv: 0.0001
 
 # log
 project: ContextualBandit-ICML
-group: Fixed-Linear-LinTS
+group: Fixed-Linear-LMCTS

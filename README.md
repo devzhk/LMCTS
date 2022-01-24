@@ -21,12 +21,8 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 ### UCI datasets
 1. Statlog-shuttle
 2. CoverType
-3. Magic (+5 if eating a safe mushroom, +5 w.prob 0.5 )
-4. Mushroom
-
-### Yahoo R6A&B datasets
-
-### Openbandit dataset
+3. Magic 
+4. Adult 
 
 ## Data generation and preprocessing 
 
@@ -48,11 +44,17 @@ To run bandit algorithm on classification datasets, use
 ```bash
 python3 run_classifier.py --config_path configs/uci/shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
 ```
+### CIFAR10
+```bash
+python3 run_cifar.py --config_path configs/image/cifar10-lmcts.yaml
+```
+
+
 ## Customize configuration file
 
 
-## Hyperparameter Search
-We use wandb to do grid search. Search space is defined in `.yaml` files under sweep directory. 
+## Hyperparameter Sweep 
+We use wandb library to do grid search. `.yaml` files under sweep directory define the search space for each algorithm.  
 Example: 
 ```bash
 wandb sweep sweep/uci/shuttle-lmcts.yaml
@@ -63,4 +65,3 @@ wandb agent [agent id]
 - [ ] Fixed arm linear bandit
 - [ ] Fixed arm logistic bandit
 - [ ] Adult, Magic
-- [ ] 

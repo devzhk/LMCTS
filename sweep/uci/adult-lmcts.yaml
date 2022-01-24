@@ -18,20 +18,24 @@ parameters:
     value: 10000
   algo:
     value: LMCTS
+  reduce:
+    value: 2
+  batchsize:
+    value: 500
   model:
     value: neural
   layers:
-    value: [100]
+    value: [20, 20, 20]
   loss:
-    value: L2
+    value: BCE
   act:
     values: ['ReLU', 'LeakyReLU']
   beta_inv:
     values: [0.001, 0.00001, 0.0001, 0.000001]
   lr:
-    values: [0.005, 0.001, 0.0005]
+    values: [0.01, 0.005, 0.001, 0.0005]
   num_iter:
-    values: [30, 50, 70]
+    value: 50
 command: 
   - ${env}
   - python3

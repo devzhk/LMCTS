@@ -1,22 +1,23 @@
-data_name: adult
-version: 2
-num_data: 20000
+data_name: MagicTelescope
+version: 1
+num_data: 19000
 
 # bandit
 num_arm: 2
-dim_context: 14
+dim_context: 10
 T: 10000
 
 # train
-algo: NeuralEpsGreedy
+algo: NeuralUCB
 model: neural
 act: ReLU
 layers: [100]
-reduce: 2
 num_iter: 100
-eps: 0.01
 lr: 0.01
+reg: 0.001
+nu: 0.00001
+
 
 # log
 project: ContextualBandit-ICML
-group: Adult-NeuralEpsGreedy
+group: Magic-NeuralUCB
