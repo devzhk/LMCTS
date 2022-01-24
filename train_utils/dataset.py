@@ -29,10 +29,10 @@ def remove_nan(arr):
 class SimData(Dataset):
     def __init__(self, datapath, num_data=None, index=0):
         data = torch.load(datapath)
-        context = data['context']
+        self.context = data['context']
         if num_data:
-            context = context[index:index + num_data]
-        self.context = context / torch.norm(context, dim=1, keepdim=True)
+            self.context = self.context[index:index + num_data]
+        # self.context = self.context / torch.norm(context, dim=1, keepdim=True)
 
     def __getitem__(self, idx):
         return self.context[idx]
