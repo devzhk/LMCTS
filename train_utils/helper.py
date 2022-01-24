@@ -135,7 +135,7 @@ def construct_agent_sim(config, device):
         nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
     elif algo_name == 'LinUCB':
-        nu = lambda t: config['nu'] * np.sqrt(num_arm * dim_context * np.log(t))
+        nu = config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinUCB(num_arm, dim_context, nu, reg=1.0, device=device)
     elif algo_name == 'LMCTS':
         beta_inv = config['beta_inv'] * dim_context * np.log(T)
