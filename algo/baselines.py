@@ -33,7 +33,8 @@ class LinTS(_agent):
         # initialize the design matrix
         # self.Design = self.reg * torch.eye(self.dim_context)
         self.DesignInv = (1 / self.reg) * \
-            torch.eye(self.dim_context, device=self.device)   # compute its inverse
+            torch.eye(self.dim_context,
+                      device=self.device)   # compute its inverse
         self.Vector = torch.zeros(self.dim_context, device=self.device)
         self.theta = torch.zeros(self.dim_context, device=self.device)
         self.last_cxt = 0
@@ -46,7 +47,8 @@ class LinTS(_agent):
         '''
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
-            cov = self.DesignInv + 0.00001 * torch.eye(self.dim_context, device=self.device)
+            cov = self.DesignInv + 0.00001 * \
+                torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
         dist = MultivariateNormal(self.theta.view(-1), self.nu ** 2 * cov)
@@ -72,6 +74,8 @@ class LinTS(_agent):
 Linear UCB algorithm 
 
 '''
+
+
 class LinUCB(_agent):
     def __init__(self,
                  num_arm,       # number of arms
@@ -93,7 +97,8 @@ class LinUCB(_agent):
         # initialize the design matrix
         # self.Design = self.reg * torch.eye(self.dim_context)
         self.DesignInv = (1 / self.reg) * \
-            torch.eye(self.dim_context, device=self.device)   # compute its inverse
+            torch.eye(self.dim_context,
+                      device=self.device)   # compute its inverse
         self.Vector = torch.zeros(self.dim_context, device=self.device)
         self.theta = torch.zeros(self.dim_context, device=self.device)
         self.last_cxt = 0
@@ -106,13 +111,15 @@ class LinUCB(_agent):
         '''
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
-            cov = self.DesignInv + 0.00001 * torch.eye(self.dim_context, device=self.device)
+            cov = self.DesignInv + 0.00001 * \
+                torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
 
         norms = [context[i].T @ cov @ context[i] for i in range(self.num_arm)]
 
-        pred = context @ self.theta + torch.tensor(norms, device=self.device)
+        pred = context @ self.theta + self.nu * \
+            torch.tensor(norms, device=self.device)
         arm_to_pull = torch.argmax(pred).item()
         return arm_to_pull
 
@@ -133,6 +140,8 @@ class LinUCB(_agent):
 '''
 Epsilon greedy algorithm
 '''
+
+
 def randmax(arr):
     '''
     Randomly pick an element among maximal elements.
@@ -146,6 +155,7 @@ class EpsGreedy(_agent):
     '''
     epsilon-greedy
     '''
+
     def __init__(self, num_arm, eps=0.0, name='eps-greedy'):
         super(EpsGreedy, self).__init__(name)
         self.num_arm = num_arm
@@ -176,7 +186,6 @@ class EpsGreedy(_agent):
         self.step += 1
 
 
-
 '''
 Neural Thompson Sampling
 
@@ -184,6 +193,8 @@ Adapted from the official implementation at https://github.com/ZeroWeight/Neural
 1. the authors use the inverse of the diagonal elements of U to approximate the design matrix inverse U^{-1}
 2. We divide the  according to paper's algorithm
 '''
+
+
 def get_param_size(model):
     '''
     Args:
@@ -237,7 +248,8 @@ class NeuralTS(_agent):
     def clear(self):
         # self.model.init_weights()
         self.collector.clear()
-        self.Design = self.reg * torch.ones(self.num_params, device=self.device)
+        self.Design = self.reg * \
+            torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
         self.step = 0
 
@@ -246,12 +258,13 @@ class NeuralTS(_agent):
         for i in range(self.num_arm):
             self.model.zero_grad()
             if self.image:
-                ri = self.model(context[i:i+1,:, :,:])
+                ri = self.model(context[i:i+1, :, :, :])
             else:
                 ri = self.model(context[i])
             ri.backward()
 
-            grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+            grad = torch.cat([p.grad.contiguous().view(-1).detach()
+                              for p in self.model.parameters()])
 
             squared_sigma = self.reg * self.nu * grad * grad / self.Design
             sigma = torch.sqrt(torch.sum(squared_sigma))
@@ -291,7 +304,8 @@ class NeuralTS(_agent):
             # update using full batch
             contexts, rewards = self.collector.fetch_batch()
             contexts = torch.stack(contexts, dim=0).to(self.device)
-            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            rewards = torch.tensor(
+                rewards, dtype=torch.float32, device=self.device)
             self.model.train()
             for i in range(num_iter):
                 self.model.zero_grad()
@@ -310,7 +324,8 @@ class NeuralTS(_agent):
         else:
             re = self.model(self.last_cxt)
         re.backward()
-        grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+        grad = torch.cat([p.grad.contiguous().view(-1).detach()
+                          for p in self.model.parameters()])
         self.Design += grad * grad
 
 
@@ -318,6 +333,7 @@ class NeuralTS(_agent):
 Neural UCB
 Adapted from the implementation at https://github.com/ZeroWeight/NeuralTS/blob/master/learner_neural.py
 '''
+
 
 class NeuralUCB(_agent):
     def __init__(self,
@@ -361,7 +377,8 @@ class NeuralUCB(_agent):
     def clear(self):
         # self.model.init_weights()
         self.collector.clear()
-        self.Design = self.reg * torch.ones(self.num_params, device=self.device)
+        self.Design = self.reg * \
+            torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
 
     def choose_arm(self, context):
@@ -375,7 +392,8 @@ class NeuralUCB(_agent):
                 ri = self.model(context[i])
             ri.backward()
 
-            grad = torch.cat([p.grad.contiguous().view(-1).detach() for p in self.model.parameters()])
+            grad = torch.cat([p.grad.contiguous().view(-1).detach()
+                              for p in self.model.parameters()])
             grad_list.append(grad)
             squared_sigma = self.reg * self.nu * grad * grad / self.Design
             sigma = torch.sqrt(torch.sum(squared_sigma))
@@ -415,7 +433,8 @@ class NeuralUCB(_agent):
         else:
             contexts, rewards = self.collector.fetch_batch()
             contexts = torch.stack(contexts, dim=0).to(self.device)
-            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            rewards = torch.tensor(
+                rewards, dtype=torch.float32, device=self.device)
             self.model.train()
             for i in range(num_iter):
                 self.model.zero_grad()
@@ -431,6 +450,8 @@ class NeuralUCB(_agent):
 '''
 Neural greedy algo and Neural eps-greedy algo
 '''
+
+
 class NeuralEpsGreedy(_agent):
     def __init__(self,
                  num_arm,
@@ -505,7 +526,8 @@ class NeuralEpsGreedy(_agent):
         else:
             contexts, rewards = self.collector.fetch_batch()
             contexts = torch.stack(contexts, dim=0).to(self.device)
-            rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+            rewards = torch.tensor(
+                rewards, dtype=torch.float32, device=self.device)
 
             for i in range(num_iter):
                 self.model.zero_grad()

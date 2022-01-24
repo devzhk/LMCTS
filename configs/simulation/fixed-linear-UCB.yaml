@@ -2,18 +2,18 @@ datapath: data/gaussian50-20-1-1.pt
 # bandit
 num_arm: 50
 dim_context: 20
-T: 5000
+T: 10000
 index: 0
 num_data: 1
 func: linear
-sigma: 1.0
+sigma: 0.5
 
 # train
 algo: LinUCB
 model: linear
 
 num_iter: 1
-nu: 0.01
+nu: 0.5
 
 # log
 project: ContextualBandit-ICML
