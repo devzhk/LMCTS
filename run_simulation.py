@@ -34,7 +34,10 @@ def run(config, args):
             config=config)
         config = wandb.config
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    if args.cpu:
+        device = torch.device('cpu')
+    else:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # Parse argument
     data = torch.load(config['datapath'])
     theta = data['theta'].to(device)
@@ -95,6 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--config_path', type=str,
                         default='sweep/sweep-default.yaml')
     parser.add_argument('--log', action='store_true', default=False)
+    parser.add_argument('--cpu', action='store_true', default=False)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:

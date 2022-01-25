@@ -22,6 +22,7 @@ def construct_agent_cls(config, device):
     num_arm = config['num_arm']
     algo_name = config['algo']
     batchsize = config['batchsize'] if 'batchsize' in config else None
+    decay = config['decay_step'] if 'decay_step' in config else 20
     reduce = config['reduce'] if 'reduce' in config else None
     if algo_name == 'LinTS':
         nu = config['nu'] * np.sqrt(num_arm * dim_context * np.log(T))
@@ -55,6 +56,7 @@ def construct_agent_cls(config, device):
                       name='LMCTS',
                       batch_size=batchsize,
                       reduce=reduce,
+                      decay_step=decay,
                       device=device)
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])
@@ -131,6 +133,7 @@ def construct_agent_sim(config, device):
     sigma = config['sigma']
     T = config['T']
     batchsize = config['batchsize'] if 'batchsize' in config else None
+    decay = config['decay_step'] if 'decay_step' in config else 20
     if algo_name == 'LinTS':
         nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
@@ -162,6 +165,7 @@ def construct_agent_sim(config, device):
                       collector,
                       name='LMCTS',
                       batch_size=batchsize,
+                      decay_step=decay,
                       device=device)
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])
@@ -227,7 +231,7 @@ def construct_agent_image(config, device):
     algo_name = config['algo']
     T = config['T']
     batchsize = config['batchsize'] if 'batchsize' in config else None
-
+    decay = config['decay_step'] if 'decay_step' in config else 20
     if algo_name == 'LMCTS':
         beta_inv = config['beta_inv'] * np.log(T)
         model = CNNModel(in_channel=3 * num_arm).to(device)
@@ -243,6 +247,7 @@ def construct_agent_image(config, device):
                       collector,
                       batch_size=batchsize,
                       reduce=4,
+                      decay_step=decay,
                       device=device)
     elif algo_name == 'NeuralTS':
         model = CNNModel(in_channel=3*num_arm).to(device)

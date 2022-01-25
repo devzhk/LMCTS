@@ -11,6 +11,7 @@ class LMCTS(_agent):
                  criterion,         # loss function
                  collector,         # context and reward collector
                  batch_size=None,   # batchsize to update nn
+                 decay_step=20,     # learning rate decay step
                  reduce=None,       # reduce update frequency
                  device='cpu',
                  name='default'):
@@ -20,6 +21,7 @@ class LMCTS(_agent):
         self.optimizer = optimizer
         self.criterion = criterion
         self.collector = collector
+        self.decay_step = decay_step
         if batch_size:
             self.loader = DataLoader(collector, batch_size=batch_size)
             self.batchsize = batch_size
@@ -69,7 +71,7 @@ class LMCTS(_agent):
             assert not torch.isnan(loss), "Loss is Nan!"
         else:
         # update using full batch
-            if self.step % 20 == 0:
+            if self.step % self.decay_step == 0:
                 self.optimizer.lr = self.base_lr / self.step
             contexts, rewards = self.collector.fetch_batch()
             contexts = torch.stack(contexts, dim=0).to(self.device)

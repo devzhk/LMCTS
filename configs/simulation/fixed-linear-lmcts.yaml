@@ -3,17 +3,18 @@ datapath: data/gaussian50-20-1-1.pt
 num_arm: 50
 dim_context: 20
 index: 0
-T: 5000
-sigma: 1.0
+T: 10000
+sigma: 0.5
 func: linear
 
 # train
 algo: LMCTS
 model: linear
+decay_step: 1
 num_data: 1
-lr: 0.05
-num_iter: 30
-beta_inv: 0.0001
+lr: 0.1
+num_iter: 100
+beta_inv: 0.001
 
 # log
 project: ContextualBandit-ICML
