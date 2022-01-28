@@ -1,0 +1,43 @@
+program: run_classifier.py
+method: grid
+metric:
+  goal: minimize
+  name: Regret
+parameters:
+  data_name:
+    value: adult
+  version:
+    value: 2
+  num_data:
+    value: 20000
+  num_arm: 
+    value: 2
+  dim_context: 
+    value: 14
+  T:
+    value: 10000
+  algo:
+    value: NeuralTS
+  model:
+    value: neural
+  layers:
+    value: [100]
+  act:
+    values: ['ReLU', 'LeakyReLU']
+  num_iter:
+    value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.1, 0.01, 1.0, 0.001]
+  nu:
+    values: [0.1, 0.01, 0.001, 0.0001, 0.00001]
+
+command: 
+  - ${env}
+  - python3
+  - ${program}
+
+name: Adult-NeuralTS
+project: ContextualBandit-UCI
+entity: hzzheng

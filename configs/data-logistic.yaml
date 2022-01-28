@@ -1,0 +1,6 @@
+num_arm: 10
+dim_context: 5
+theta_norm: 1
+context_norm: 1
+T: 100
+filename: data/logistic-10.pt

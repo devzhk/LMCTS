@@ -77,5 +77,5 @@ class LogisticBandit(object):
         probs = torch.sigmoid(prod)
         h = torch.bernoulli(probs)
         reward = h[arm]
-        regret = h.max() - h[arm]
+        regret = probs.max() - probs[arm]
         return reward, regret

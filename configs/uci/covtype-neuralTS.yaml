@@ -12,7 +12,7 @@ algo: NeuralTS
 model: neural
 act: ReLU
 layers: [100]
-loss: BCE
+loss: L2
 num_iter: 100
 lr: 0.01
 reg: 0.001

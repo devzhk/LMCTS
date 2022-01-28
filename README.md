@@ -29,7 +29,9 @@ $$h(\theta^\top x) +\epsilon$$ where $h(v)=1/(1+\exp(v))$$
 
 ## How to run 
 ### Synthetic data
-To run bandit algorithm on synthetic data, use
+To run bandit algorithm on synthetic data, use `run_simulation.py`. 
+
+
 ```bash
 python3 run_simulation.py --config_path configs/simulation/linear-LMCTS.yaml --repeat [number of experiments to repeat] --log 
 ```
@@ -61,7 +63,13 @@ wandb sweep sweep/uci/shuttle-lmcts.yaml
 wandb agent [agent id]
 ```
 
-### TODO:
-- [ ] Fixed arm linear bandit
-- [ ] Fixed arm logistic bandit
-- [ ] Adult, Magic
+## Code Structure
+`run_cifar.py`, `run_classifier.py`, `run_simulation.py` are the main entries of the program, which contain the abstract code of bandit framework. 
+These main entry files read configuration `.yaml` files from `configs` and parse them to run. 
+
+`algo`,`train_utils`,`models` realize different modules in the framework.
+More specifically, 
+1. `algo` implements different online bandit algorithms. 
+2. `train_utils` implements datasets, bandit instance, loss functions, and some useful helper functions.
+3. `models` implements different model architectures. 
+

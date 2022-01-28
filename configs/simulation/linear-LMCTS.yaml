@@ -9,8 +9,8 @@ func: linear
 # train
 algo: LMCTS
 model: linear
-num_iter: 30
-beta_inv: 0.00001
+num_iter: 100
+beta_inv: 0.0000001
 lr: 0.1
 
 # log

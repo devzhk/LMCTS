@@ -1,0 +1,43 @@
+program: run_classifier.py
+method: grid
+metric:
+  goal: minimize
+  name: Regret
+parameters:
+  data_name:
+    value: mushroom
+  version:
+    value: 1
+  num_data:
+    value: 8000
+  num_arm: 
+    value: 2
+  dim_context: 
+    value: 22
+  T:
+    value: 10000
+  algo:
+    value: NeuralTS
+  model:
+    value: neural
+  layers:
+    value: [100]
+  act:
+    value: 'ReLU'
+  num_iter:
+    value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.00001, 0.1, 0.01, 0.001, 0.000001]
+  nu:
+    values: [0.01, 0.001, 0.0001, 0.00001]
+
+command: 
+  - ${env}
+  - python3
+  - ${program}
+
+name: NeuralTS-covtype
+project: ContextualBandit-UCI
+entity: hzzheng

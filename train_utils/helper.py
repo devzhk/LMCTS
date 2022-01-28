@@ -1,12 +1,12 @@
 import numpy as np
 import torch
-from torch.optim import SGD
+from torch.optim import SGD, Adam, LBFGS
 
 from models.classifier import LinearNet, FCN
-from models.conv import CNNModel
+from models.conv import CNNModel, MiniCNN
 from algo.langevin import LangevinMC
 from algo import LMCTS, LinTS, LinUCB, \
-    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy
+    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy, UCBGLM
 
 from train_utils.dataset import Collector
 
@@ -24,6 +24,21 @@ def construct_agent_cls(config, device):
     batchsize = config['batchsize'] if 'batchsize' in config else None
     decay = config['decay_step'] if 'decay_step' in config else 20
     reduce = config['reduce'] if 'reduce' in config else None
+    # Define model
+    if 'model' in config:
+        if config['model'] == 'linear':
+            model = LinearNet(1, dim_context)
+            model = model.to(device)
+        elif config['model'] == 'neural':
+            model = FCN(1, dim_context,
+                        layers=config['layers'],
+                        act=config['act'])
+            model = model.to(device)
+        else:
+            raise ValueError('Choose linear or neural for model please')
+    else:
+        model = None
+
     if algo_name == 'LinTS':
         nu = config['nu'] * np.sqrt(num_arm * dim_context * np.log(T))
         agent = LinTS(num_arm, num_arm * dim_context, nu, reg=1.0, device=device)
@@ -32,15 +47,6 @@ def construct_agent_cls(config, device):
         agent = LinUCB(num_arm, num_arm * dim_context, nu, reg=1.0, device=device)
     elif algo_name == 'LMCTS':
         beta_inv = config['beta_inv'] * dim_context * np.log(T)
-        # Define model
-        if config['model'] == 'linear':
-            model = LinearNet(1, dim_context * num_arm)
-        elif config['model'] == 'neural':
-            model = FCN(1, dim_context * num_arm,
-                        layers=config['layers'],
-                        act=config['act'],
-                        norm=True)
-        model = model.to(device)
         # create Lagevine Monte Carol optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['lr'],
                                beta_inv=beta_inv, weight_decay=2.0)
@@ -61,10 +67,7 @@ def construct_agent_cls(config, device):
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])
     elif algo_name == 'NeuralTS':
-        model = FCN(1, dim_context * num_arm,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
+
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -80,10 +83,6 @@ def construct_agent_cls(config, device):
                          reduce=reduce,
                          device=device)
     elif algo_name == 'NeuralUCB':
-        model = FCN(1, dim_context * num_arm,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -99,10 +98,6 @@ def construct_agent_cls(config, device):
                           reduce=reduce,
                           device=device)
     elif algo_name == 'NeuralEpsGreedy':
-        model = FCN(1, dim_context * num_arm,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'])
         # Define loss function
         if 'loss' not in config:
@@ -134,6 +129,22 @@ def construct_agent_sim(config, device):
     T = config['T']
     batchsize = config['batchsize'] if 'batchsize' in config else None
     decay = config['decay_step'] if 'decay_step' in config else 20
+
+    # Define model
+    if 'model' in config:
+        if config['model'] == 'linear':
+            model = LinearNet(1, dim_context)
+            model = model.to(device)
+        elif config['model'] == 'neural':
+            model = FCN(1, dim_context,
+                        layers=config['layers'],
+                        act=config['act'])
+            model = model.to(device)
+        else:
+            raise ValueError('Choose linear or neural for model please')
+    else:
+        model = None
+
     if algo_name == 'LinTS':
         nu = sigma * config['nu'] * np.sqrt(dim_context * np.log(T))
         agent = LinTS(num_arm, dim_context, nu, reg=1.0, device=device)
@@ -142,16 +153,8 @@ def construct_agent_sim(config, device):
         agent = LinUCB(num_arm, dim_context, nu, reg=1.0, device=device)
     elif algo_name == 'LMCTS':
         beta_inv = config['beta_inv'] * dim_context * np.log(T)
-
         print(f'Beta inverse: {beta_inv}')
-        # Define model
-        if config['model'] == 'linear':
-            model = LinearNet(1, dim_context)
-        elif config['model'] == 'neural':
-            model = FCN(1, dim_context,
-                        layers=config['layers'],
-                        act=config['act'])
-        model = model.to(device)
+
         # create optimizer
         optimizer = LangevinMC(model.parameters(), lr=config['lr'],
                                beta_inv=beta_inv, weight_decay=2.0)
@@ -170,10 +173,6 @@ def construct_agent_sim(config, device):
     elif algo_name == 'EpsGreedy':
         agent = EpsGreedy(num_arm, config['eps'])
     elif algo_name == 'NeuralTS':
-        model = FCN(1, dim_context,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -187,10 +186,6 @@ def construct_agent_sim(config, device):
                          config['nu'], reg=config['reg'],
                          device=device)
     elif algo_name == 'NeuralUCB':
-        model = FCN(1, dim_context,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -204,10 +199,6 @@ def construct_agent_sim(config, device):
                           config['nu'], reg=config['reg'],
                           device=device)
     elif algo_name == 'NeuralEpsGreedy':
-        model = FCN(1, dim_context,
-                    layers=config['layers'],
-                    act=config['act'])
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'])
         # Define loss function
         if 'loss' not in config:
@@ -219,6 +210,22 @@ def construct_agent_sim(config, device):
                                 model, optimizer,
                                 criterion, collector,
                                 config['eps'], device=device)
+    elif algo_name == 'UCBGLM':
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        # optimizer = LBFGS(model.parameters(), max_iter=config['num_iter'])
+        # Define loss function
+        if 'loss' not in config:
+            criterion = construct_loss('L2', reduction='mean')
+        else:
+            criterion = construct_loss(config['loss'], reduction='mean')
+        collector = Collector()
+        agent = UCBGLM(num_arm, dim_context,
+                       model, optimizer,
+                       criterion, collector,
+                       config['nu'],
+                       lr=config['lr'],
+                       reg=config['reg'],
+                       device=device)
     else:
         raise ValueError(f'{algo_name} is not supported. Please choose from '
                          f'LinTS, LMCTS, NeuralTS, NeuralUCB, EpsGreedy')
@@ -234,7 +241,7 @@ def construct_agent_image(config, device):
     decay = config['decay_step'] if 'decay_step' in config else 20
     if algo_name == 'LMCTS':
         beta_inv = config['beta_inv'] * np.log(T)
-        model = CNNModel(in_channel=3 * num_arm).to(device)
+        model = MiniCNN(in_channel=3 * num_arm).to(device)
         optimizer = LangevinMC(model.parameters(), lr=config['lr'],
                                beta_inv=beta_inv, weight_decay=2.0)
         # Define loss function
@@ -246,11 +253,11 @@ def construct_agent_image(config, device):
         agent = LMCTS(model, optimizer, criterion,
                       collector,
                       batch_size=batchsize,
-                      reduce=4,
+                      reduce=5,
                       decay_step=decay,
                       device=device)
     elif algo_name == 'NeuralTS':
-        model = CNNModel(in_channel=3*num_arm).to(device)
+        model = MiniCNN(in_channel=3*num_arm).to(device)
         model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
@@ -269,7 +276,7 @@ def construct_agent_image(config, device):
                          reduce=10,
                          device=device)
     elif algo_name == 'NeuralUCB':
-        model = CNNModel(in_channel=3 * num_arm).to(device)
+        model = MiniCNN(in_channel=3 * num_arm).to(device)
         model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
@@ -288,7 +295,7 @@ def construct_agent_image(config, device):
                           reg=config['reg'],
                           device=device)
     elif algo_name == 'NeuralEpsGreedy':
-        model = CNNModel(in_channel=3 * num_arm).to(device)
+        model = MiniCNN(in_channel=3 * num_arm).to(device)
         model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'])
         # Define loss function

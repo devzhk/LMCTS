@@ -10,7 +10,7 @@ func: linear
 algo: LinTS
 model: linear
 num_iter: 1
-nu: 0.005
+nu: 0.01
 
 # log
 project: ContextualBandit-ICML

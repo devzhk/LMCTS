@@ -21,20 +21,18 @@ parameters:
   func: 
     value: linear
   algo: 
-    value: LMCTS
+    value: LinUCB
   model:
     value: linear
-  beta_inv:
-    values: [0.00001, 0.0001, 0.001, 0.01]
-  lr:
-    values: [0.1, 0.05, 0.01]
   num_iter:
-    values: [100, 50]
+    value: 1
+  nu:
+    values: [0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1.0]
 command: 
   - ${env}
   - python3
   - ${program}
 
-name: Linear-LMCTS
+name: LinTS-linear
 project: ContextualBandit-simulation
 entity: hzzheng

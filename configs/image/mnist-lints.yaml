@@ -1,0 +1,17 @@
+data_name: MagicTelescope
+version: 1
+num_data: 19000
+
+# bandit
+num_arm: 2
+dim_context: 10
+T: 10000
+
+# train
+algo: LinTS
+nu: 0.01
+num_iter: 1
+
+# log
+project: ContextualBandit-ICML
+group: Magic-LinTS

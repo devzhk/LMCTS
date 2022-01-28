@@ -8,7 +8,7 @@ sigma: 1.0
 func: quad
 
 # train
-algo: NeuralTS
+algo: NeuralUCB
 model: neural
 layers: [20, 20, 20]
 act: ReLU

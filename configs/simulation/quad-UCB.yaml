@@ -3,16 +3,15 @@ datapath: data/gaussian50-20-1-1.pt
 num_arm: 50
 dim_context: 20
 T: 10000
-sigma: 0.5
-func: linear
+sigma: 1.0
+func: quad
 
 # train
-algo: NeuralEpsGreedy
+algo: LinUCB
 model: linear
-num_iter: 50
-lr: 0.01
-eps: 0.01
+num_iter: 1
+nu: 0.005
 
 # log
 project: ContextualBandit-ICML
-group: Linear-LinearEpsGreedy
+group: Quad-LinUCB

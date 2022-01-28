@@ -3,7 +3,7 @@ data_name: CIFAR10
 # bandit
 num_arm: 10
 dim_context: 3072
-T: 20000
+T: 100000
 
 # train
 algo: NeuralTS
@@ -13,8 +13,8 @@ batchsize: 128
 num_iter: 50
 lr: 0.01
 reg: 0.01
-nu: 0.0001
+nu: 0.00001
 
 # log
 project: ContextualBandit-Image
-group: Cifar10-neuralTS
+group: Cifar10-NeuralTS

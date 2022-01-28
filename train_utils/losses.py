@@ -1,14 +1,18 @@
 import torch
 import torch.nn as nn
+from functools import partial
 
 
-def NLL(pred, target):
+def NLL(pred, target, reduction='sum'):
     '''
     Negative log likelihood loss given x^\top theta
 
     Pred: x^\top \theta, (N, 1)
     '''
-    loss = torch.sum(torch.log(1 + torch.exp(pred)) - target * pred)
+    if reduction == 'sum':
+        loss = torch.sum(torch.log(1 + torch.exp(pred)) - target * pred)
+    else:
+        loss = torch.mean(torch.log(1 + torch.exp(pred)) - target * pred)
     return loss
 
 
@@ -20,7 +24,7 @@ def construct_loss(name, reduction='mean'):
     elif name == 'BCE':
         func = nn.BCEWithLogitsLoss(reduction=reduction)
     elif name == 'Logistic':
-        func = NLL
+        func = partial(NLL, reduction=reduction)
     else:
         func = nn.MSELoss(reduction=reduction)
         print('Invalid loss function name. Setting loss function to MSELoss by default...')

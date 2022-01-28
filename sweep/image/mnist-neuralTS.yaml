@@ -1,0 +1,38 @@
+program: run_cifar.py
+method: grid
+metric:
+  goal: minimize
+  name: Regret
+parameters:
+  data_name:
+    value: mnist_784
+  version:
+    value: 1
+  num_arm: 
+    value: 10
+  dim_context: 
+    value: 784
+  T:
+    value: 10000
+  algo:
+    value: NeuralTS
+  model:
+    value: neural
+  batchsize:
+    value: 100
+  num_iter:
+    value: 100
+  lr:
+    value: 0.01
+  reg:
+    values: [0.001, 0.01, 0.1]
+  nu:
+    values: [0.1, 0.01, 0.001]
+command: 
+  - ${env}
+  - python3
+  - ${program}
+
+name: Shuttle-NeuralTS
+project: ContextualBandit-UCI
+entity: hzzheng

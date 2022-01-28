@@ -1,0 +1,16 @@
+data_name: shuttle
+version: 1
+
+# bandit
+num_arm: 7
+dim_context: 9
+T: 10000
+
+# train
+algo: LinUCB
+nu: 0.1
+num_iter: 1
+
+# log
+project: ContextualBandit-ICML
+group: Shuttle-LinUCB

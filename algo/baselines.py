@@ -14,10 +14,10 @@ Linear Thompson Sampling method
 
 class LinTS(_agent):
     def __init__(self,
-                 num_arm,       # number of arms
-                 dim_context,   # dimension of context vector
-                 nu,            # temperature hyperparameter to control variance
-                 reg=1.0,       # regularization weight
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context vector
+                 nu,  # temperature hyperparameter to control variance
+                 reg=1.0,  # regularization weight
                  device='cpu',  # device
                  name='Linear Thompson sampling'):
         super(LinTS, self).__init__(name)
@@ -33,8 +33,8 @@ class LinTS(_agent):
         # initialize the design matrix
         # self.Design = self.reg * torch.eye(self.dim_context)
         self.DesignInv = (1 / self.reg) * \
-            torch.eye(self.dim_context,
-                      device=self.device)   # compute its inverse
+                         torch.eye(self.dim_context,
+                                   device=self.device)  # compute its inverse
         self.Vector = torch.zeros(self.dim_context, device=self.device)
         self.theta = torch.zeros(self.dim_context, device=self.device)
         self.last_cxt = 0
@@ -48,7 +48,7 @@ class LinTS(_agent):
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
             cov = self.DesignInv + 0.00001 * \
-                torch.eye(self.dim_context, device=self.device)
+                  torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
         dist = MultivariateNormal(self.theta.view(-1), self.nu ** 2 * cov)
@@ -65,7 +65,7 @@ class LinTS(_agent):
         omega = self.DesignInv @ self.last_cxt
         # update the inverse of the design matrix
         self.DesignInv = self.DesignInv - omega.view(-1, 1) @ omega.view(-1, 1).T / \
-            (1 + torch.dot(omega, self.last_cxt))
+                         (1 + torch.dot(omega, self.last_cxt))
         self.theta = self.DesignInv @ self.Vector
         self.t += 1
 
@@ -78,10 +78,10 @@ Linear UCB algorithm
 
 class LinUCB(_agent):
     def __init__(self,
-                 num_arm,       # number of arms
-                 dim_context,   # dimension of context vector
-                 nu,            # temperature hyperparameter to control variance
-                 reg=1.0,       # regularization weight
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context vector
+                 nu,  # temperature hyperparameter to control variance
+                 reg=1.0,  # regularization weight
                  device='cpu',  # device
                  name='Linear UCB'):
         super(LinUCB, self).__init__(name)
@@ -97,8 +97,8 @@ class LinUCB(_agent):
         # initialize the design matrix
         # self.Design = self.reg * torch.eye(self.dim_context)
         self.DesignInv = (1 / self.reg) * \
-            torch.eye(self.dim_context,
-                      device=self.device)   # compute its inverse
+                         torch.eye(self.dim_context,
+                                   device=self.device)  # compute its inverse
         self.Vector = torch.zeros(self.dim_context, device=self.device)
         self.theta = torch.zeros(self.dim_context, device=self.device)
         self.last_cxt = 0
@@ -112,14 +112,14 @@ class LinUCB(_agent):
         tol = 1e-12
         if torch.linalg.det(self.DesignInv) < tol:
             cov = self.DesignInv + 0.00001 * \
-                torch.eye(self.dim_context, device=self.device)
+                  torch.eye(self.dim_context, device=self.device)
         else:
             cov = self.DesignInv
 
         norms = [context[i].T @ cov @ context[i] for i in range(self.num_arm)]
 
         pred = context @ self.theta + self.nu * \
-            torch.tensor(norms, device=self.device)
+               torch.tensor(norms, device=self.device)
         arm_to_pull = torch.argmax(pred).item()
         return arm_to_pull
 
@@ -132,7 +132,7 @@ class LinUCB(_agent):
         omega = self.DesignInv @ self.last_cxt
         # update the inverse of the design matrix
         self.DesignInv = self.DesignInv - omega.view(-1, 1) @ omega.view(-1, 1).T / \
-            (1 + torch.dot(omega, self.last_cxt))
+                         (1 + torch.dot(omega, self.last_cxt))
         self.theta = self.DesignInv @ self.Vector
         self.t += 1
 
@@ -208,17 +208,17 @@ def get_param_size(model):
 
 class NeuralTS(_agent):
     def __init__(self,
-                 num_arm,           # number of arms
-                 dim_context,       # dimension of context feature
-                 model,             # Neural network model
-                 optimizer,         # optimizer
-                 criterion,         # loss function
-                 collector,         # context and reward collector
-                 nu,                # exploration variance
-                 batch_size=None,   # batchsize to update nn
-                 image=False,       # image dataset?
-                 reduce=None,       # reduce update frequency
-                 reg=1.0,           # regularization weight, lambda in original paper
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context feature
+                 model,  # Neural network model
+                 optimizer,  # optimizer
+                 criterion,  # loss function
+                 collector,  # context and reward collector
+                 nu,  # exploration variance
+                 batch_size=None,  # batchsize to update nn
+                 image=False,  # image dataset?
+                 reduce=None,  # reduce update frequency
+                 reg=1.0,  # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralTS'):
         super(NeuralTS, self).__init__(name)
@@ -249,7 +249,7 @@ class NeuralTS(_agent):
         # self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * \
-            torch.ones(self.num_params, device=self.device)
+                      torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
         self.step = 0
 
@@ -258,7 +258,7 @@ class NeuralTS(_agent):
         for i in range(self.num_arm):
             self.model.zero_grad()
             if self.image:
-                ri = self.model(context[i:i+1, :, :, :])
+                ri = self.model(context[i:i + 1, :, :, :])
             else:
                 ri = self.model(context[i])
             ri.backward()
@@ -337,17 +337,17 @@ Adapted from the implementation at https://github.com/ZeroWeight/NeuralTS/blob/m
 
 class NeuralUCB(_agent):
     def __init__(self,
-                 num_arm,           # number of arms
-                 dim_context,       # dimension of context feature
-                 model,             # Neural network model
-                 optimizer,         # optimizer
-                 criterion,         # loss function
-                 collector,         # context and reward collector
-                 nu,                # exploration variance
-                 batch_size=None,   # batchsize to update nn
-                 image=False,       # image dataset?
-                 reduce=None,       # reduce update frequency
-                 reg=1.0,           # regularization weight, lambda in original paper
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context feature
+                 model,  # Neural network model
+                 optimizer,  # optimizer
+                 criterion,  # loss function
+                 collector,  # context and reward collector
+                 nu,  # exploration variance
+                 batch_size=None,  # batchsize to update nn
+                 image=False,  # image dataset?
+                 reduce=None,  # reduce update frequency
+                 reg=1.0,  # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralUCB'):
         super(NeuralUCB, self).__init__(name)
@@ -378,7 +378,7 @@ class NeuralUCB(_agent):
         # self.model.init_weights()
         self.collector.clear()
         self.Design = self.reg * \
-            torch.ones(self.num_params, device=self.device)
+                      torch.ones(self.num_params, device=self.device)
         self.last_cxt = 0
 
     def choose_arm(self, context):
@@ -460,9 +460,9 @@ class NeuralEpsGreedy(_agent):
                  optimizer,
                  criterion,
                  collector,
-                 eps=0.0,               # 0<=eps<1, eps=0 -> neural greedy, otherwise -> neural eps-greedy
-                 batch_size=None,       # batchsize to update nn
-                 reduce=None,           # reduce update frequency
+                 eps=0.0,  # 0<=eps<1, eps=0 -> neural greedy, otherwise -> neural eps-greedy
+                 batch_size=None,  # batchsize to update nn
+                 reduce=None,  # reduce update frequency
                  device='cpu',
                  name='NeuralEpsGreedy'):
         super(NeuralEpsGreedy, self).__init__(name)
@@ -491,7 +491,7 @@ class NeuralEpsGreedy(_agent):
         self.step = 0
 
     def choose_arm(self, context):
-        prob = self.eps / np.sqrt(self.step+1)
+        prob = self.eps / np.sqrt(self.step + 1)
         if np.random.uniform() < prob:
             return np.random.randint(self.num_arm)
         else:
@@ -536,3 +536,271 @@ class NeuralEpsGreedy(_agent):
                 loss.backward()
                 self.optimizer.step()
             assert not torch.isnan(loss), "Loss is Nan!"
+
+
+'''
+UCB-GLM algorithm 
+'''
+
+
+class UCBGLM(_agent):
+    def __init__(self,
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context feature
+                 model,  # Linear model
+                 optimizer,  # optimizer
+                 criterion,  # loss function
+                 collector,  # context and reward collector
+                 nu,  # exploration variance
+                 batch_size=None,  # batchsize to update nn
+                 image=False,  # image dataset?
+                 reduce=None,  # reduce update frequency
+                 lr=1.0,    # learning rate
+                 reg=1.0,  # regularization weight, lambda in original paper
+                 device='cpu',
+                 name='NeuralUCB'):
+        super(UCBGLM, self).__init__(name)
+        self.image = image
+        self.reduce = reduce
+        self.num_arm = num_arm
+        self.dim_context = dim_context
+        self.base_lr = lr
+
+        self.model = model
+        if batch_size:
+            self.loader = DataLoader(collector, batch_size=batch_size)
+            self.batchsize = batch_size
+        else:
+            self.loader = None
+            self.batchsize = None
+        self.optimizer = optimizer
+        self.criterion = criterion
+        self.collector = collector
+        self.nu = nu
+        self.reg = reg
+        self.device = device
+        self.step = 0
+
+        self.num_params = get_param_size(model)
+        self.clear()
+
+    def clear(self):
+        # self.model.init_weights()
+        self.collector.clear()
+        # self.DesignInv = (1 / self.reg) * \
+        #                  torch.eye(self.dim_context,
+        #                            device=self.device)  # compute its inverse
+        self.Design = 0
+        self.last_cxt = 0
+
+    def choose_arm(self, context):
+        if self.step <= 30:
+            return np.random.randint(0, self.num_arm)
+        else:
+            tol = 1e-12
+            if torch.linalg.det(self.DesignInv) < tol:
+                cov = self.DesignInv + 0.00001 * \
+                      torch.eye(self.dim_context, device=self.device)
+            else:
+                cov = self.DesignInv
+            norms = [context[i].T @ cov @ context[i] for i in range(self.num_arm)]
+            model_mean = self.model(context)
+            pred = model_mean.view(-1) + torch.tensor(norms, device=self.device)
+            arm_to_pull = torch.argmax(pred).item()
+            # update the design matrix
+            return arm_to_pull
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+        self.last_cxt = context
+        if self.step < 30:
+            self.Design += context.view(-1, 1) @ context.view(-1, 1).T
+        # update the inverse of the design matrix
+        else:
+            if self.step == 30:
+                self.DesignInv = torch.linalg.inv(self.Design)
+            omega = self.DesignInv @ self.last_cxt
+            self.DesignInv = self.DesignInv - omega.view(-1, 1) @ omega.view(-1, 1).T / \
+                             (1 + torch.dot(omega, self.last_cxt))
+
+    def update_model(self, num_iter):
+        self.step += 1
+        if self.step < 30:
+            return
+        if self.reduce:
+            if self.step % self.reduce != 0:
+                return
+        for p in self.optimizer.param_groups:
+            p['weight_decay'] = self.reg / self.step
+
+        set_lr(self.optimizer, base=self.base_lr)
+        # update using minibatch
+        if self.batchsize and self.batchsize < self.step:
+            ploader = sample_data(self.loader)
+            for i in range(num_iter):
+                contexts, rewards = next(ploader)
+                contexts = contexts.to(self.device)
+                rewards = rewards.to(dtype=torch.float32, device=self.device)
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), 'Loss is Nan!'
+        else:
+            contexts, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0).to(self.device)
+            rewards = torch.tensor(
+                rewards, dtype=torch.float32, device=self.device)
+            self.model.train()
+
+            # def loss_closure():
+            #     self.model.zero_grad()
+            #     pred = self.model(contexts).squeeze(dim=1)
+            #     loss = self.criterion(pred, rewards)
+            #     loss.backward()
+            for i in range(num_iter):
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+                if i % 50 == 0:
+                    set_lr(self.optimizer, 2)
+
+            assert not torch.isnan(loss), 'Loss is Nan!'
+
+
+def set_lr(optimizer, step=None, base=None):
+    if base:
+        for p in optimizer.param_groups:
+            p['lr'] = base
+    else:
+        for p in optimizer.param_groups:
+            p['lr'] /= step
+
+'''
+GLM-TSL
+'''
+
+class GLMTSL(_agent):
+    def __init__(self,
+                 num_arm,  # number of arms
+                 dim_context,  # dimension of context feature
+                 model,  # Neural network model
+                 optimizer,  # optimizer
+                 criterion,  # loss function
+                 collector,  # context and reward collector
+                 nu,  # exploration variance
+                 batch_size=None,  # batchsize to update nn
+                 image=False,  # image dataset?
+                 reduce=None,  # reduce update frequency
+                 reg=1.0,  # regularization weight, lambda in original paper
+                 device='cpu',
+                 name='NeuralTS'):
+        super(GLMTSL, self).__init__(name)
+        self.image = image
+        self.reduce = reduce
+        self.num_arm = num_arm
+        self.dim_context = dim_context
+
+        self.model = model
+        self.optimizer = optimizer
+        self.criterion = criterion
+        if batch_size:
+            self.loader = DataLoader(collector, batch_size=batch_size)
+            self.batchsize = batch_size
+        else:
+            self.loader = None
+            self.batchsize = None
+        self.collector = collector
+        self.nu = nu
+        self.reg = reg
+        self.device = device
+        self.step = 0
+
+        self.num_params = get_param_size(model)
+        self.clear()
+
+    def clear(self):
+        # self.model.init_weights()
+        self.collector.clear()
+        self.DesignInv = (1 / self.reg) * \
+                         torch.eye(self.dim_context,
+                                   device=self.device)  # compute its inverse
+        self.last_cxt = 0
+
+    def choose_arm(self, context):
+        rewards = []
+        for i in range(self.num_arm):
+            self.model.zero_grad()
+            if self.image:
+                ri = self.model(context[i:i + 1, :, :, :])
+            else:
+                ri = self.model(context[i])
+            ri.backward()
+
+            grad = torch.cat([p.grad.contiguous().view(-1).detach()
+                              for p in self.model.parameters()])
+
+            squared_sigma = self.reg * self.nu * grad * grad / self.Design
+            sigma = torch.sqrt(torch.sum(squared_sigma))
+
+            sample_r = ri + torch.randn(1, device=self.device) * sigma
+            rewards.append(sample_r.item())
+        arm_to_pull = np.argmax(rewards)
+        return arm_to_pull
+
+    def receive_reward(self, arm, context, reward):
+        self.collector.collect_data(context, arm, reward)
+        self.last_cxt = context
+
+    def update_model(self, num_iter):
+        self.step += 1
+        if self.reduce:
+            if self.step % self.reduce != 0:
+                return
+
+        for p in self.optimizer.param_groups:
+            p['weight_decay'] = self.reg / self.step
+
+        # update using minibatch
+        if self.batchsize and self.batchsize < self.step:
+            ploader = sample_data(self.loader)
+            for i in range(num_iter):
+                contexts, rewards = next(ploader)
+                contexts = contexts.to(self.device)
+                rewards = rewards.to(dtype=torch.float32, device=self.device)
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+            assert not torch.isnan(loss), 'Loss is Nan!'
+        else:
+            # update using full batch
+            contexts, rewards = self.collector.fetch_batch()
+            contexts = torch.stack(contexts, dim=0).to(self.device)
+            rewards = torch.tensor(
+                rewards, dtype=torch.float32, device=self.device)
+            self.model.train()
+            for i in range(num_iter):
+                self.model.zero_grad()
+                pred = self.model(contexts).squeeze(dim=1)
+                loss = self.criterion(pred, rewards)
+                loss.backward()
+                self.optimizer.step()
+                if loss.item() < 1e-3:
+                    break
+            assert not torch.isnan(loss), 'Loss is Nan!'
+
+        # update the design matrix
+        self.model.zero_grad()
+        if self.image:
+            re = self.model(self.last_cxt.unsqueeze(0))
+        else:
+            re = self.model(self.last_cxt)
+        re.backward()
+        grad = torch.cat([p.grad.contiguous().view(-1).detach()
+                          for p in self.model.parameters()])
+        self.Design += grad * grad

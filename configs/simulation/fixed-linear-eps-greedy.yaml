@@ -2,17 +2,18 @@ datapath: data/gaussian50-20-1-1.pt
 # bandit
 num_arm: 50
 dim_context: 20
+index: 0
 T: 10000
 sigma: 0.5
 func: linear
+num_data: 1
 
 # train
-algo: NeuralEpsGreedy
+algo: EpsGreedy
 model: linear
-num_iter: 50
-lr: 0.01
-eps: 0.01
+num_iter: 1
+eps: 0.1
 
 # log
 project: ContextualBandit-ICML
-group: Linear-LinearEpsGreedy
+group: Fixed-Linear-EpsGreedy

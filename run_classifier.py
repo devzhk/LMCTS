@@ -8,7 +8,7 @@ import multiprocessing as mp
 from torch.utils.data import DataLoader
 
 from train_utils.helper import construct_agent_cls
-from train_utils.dataset import UCI, AutoUCI
+from train_utils.dataset import UCI, AutoUCI, sample_data
 
 try:
     import wandb
@@ -30,7 +30,10 @@ def run(config, args):
         config = wandb.config
     print('Start running...')
     # Parse configuration
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    if args.cpu:
+        device = torch.device('cpu')
+    else:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     T = config['T']
     dim_context = config['dim_context']
     num_arm = config['num_arm']
@@ -47,7 +50,7 @@ def run(config, args):
     bandit = DataLoader(dataset, shuffle=True)
     # --------------------- training -----------------------------
     pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)
-    loader = iter(bandit)
+    loader = sample_data(bandit)
     reward_history = []
     accum_regret = 0
 
@@ -87,7 +90,8 @@ if __name__ == '__main__':
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='configs/uci/shuttle-lmcts.yaml')
-    parser.add_argument('--log', action='store_true', default=True)
+    parser.add_argument('--cpu', action='store_true', default=False)
+    parser.add_argument('--log', action='store_true', default=False)
     parser.add_argument('--repeat', type=int, default=1)
     args = parser.parse_args()
     with open(args.config_path, 'r') as stream:

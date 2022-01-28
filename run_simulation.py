@@ -2,8 +2,6 @@ import random
 import yaml
 from argparse import ArgumentParser
 from tqdm import tqdm
-import pandas as pd
-import numpy as np
 import multiprocessing as mp
 
 import torch

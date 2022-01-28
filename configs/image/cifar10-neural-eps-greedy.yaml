@@ -3,7 +3,7 @@ data_name: CIFAR10
 # bandit
 num_arm: 10
 dim_context: 3072
-T: 20000
+T: 200000
 
 # train
 algo: NeuralEpsGreedy
@@ -11,7 +11,7 @@ model: neural
 loss: L2
 batchsize: 128
 num_iter: 50
-eps: 0.1
+eps: 0.01
 lr: 0.01
 
 # log

@@ -6,7 +6,7 @@ import random
 import torch
 import multiprocessing as mp
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 import torchvision.transforms as transforms
 
 from train_utils.losses import construct_loss
@@ -59,7 +59,7 @@ def run(config, args):
 
     )
 
-    dataset = CIFAR10('data', transform=transform, download=True)
+    dataset = CIFAR10('data', train=False, transform=transform, download=True)
     bandit = DataLoader(dataset, shuffle=True)
     # --------------------- training -----------------------------
     pbar = tqdm(range(T), dynamic_ncols=True, smoothing=0.1)

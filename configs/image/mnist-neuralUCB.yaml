@@ -1,0 +1,24 @@
+data_name: mnist_784
+version: 1
+num_data: 50000
+
+# bandit
+num_arm: 10
+dim_context: 784
+T: 10000
+
+# train
+algo: NeuralUCB
+model: neural
+act: ReLU
+layers: [100]
+batchsize: 512
+loss: L2
+num_iter: 100
+lr: 0.01
+reg: 0.00001
+nu: 0.00001
+
+# log
+project: ContextualBandit-ICML
+group: MNIST-NeuralUCB

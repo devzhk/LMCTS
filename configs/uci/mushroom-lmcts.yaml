@@ -1,10 +1,10 @@
-data_name: adult
-version: 2
-num_data: 20000
+data_name: mushroom
+version: 1
+num_data: 8000
 
 # bandit
 num_arm: 2
-dim_context: 14
+dim_context: 22
 T: 10000
 
 # train
@@ -12,14 +12,12 @@ algo: LMCTS
 model: neural
 act: LeakyReLU
 layers: [100]
-batchsize: 256
 reduce: 2
-decay_step: 1000
 loss: L2
 num_iter: 100
-beta_inv: 0.00001
-lr: 0.005
+beta_inv: 0.000001
+lr: 0.01
 
 # log
 project: ContextualBandit-ICML
-group: Adult-LMCTS
+group: Mushroom-LMCTS

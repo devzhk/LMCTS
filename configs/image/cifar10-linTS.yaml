@@ -1,18 +1,17 @@
 data_name: CIFAR10
-num_data: 10000
+
 # bandit
 num_arm: 10
 dim_context: 3072
-T: 100000
+T: 20000
 
 # train
-algo: LMCTS
+algo: LinTS
 model: neural
 loss: L2
-batchsize: 256
-decay_step: 20
+batchsize: 128
 num_iter: 50
-beta_inv: 0.0000001
+beta_inv: 0.00001
 lr: 0.01
 
 # log
