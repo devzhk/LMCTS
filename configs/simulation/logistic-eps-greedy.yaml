@@ -9,13 +9,12 @@ index: 0
 num_data: 1
 
 # train
-algo: LMCTS
+algo: EpsGreedy
 model: linear
 loss: Logistic
-num_iter: 100
-beta_inv: 0.001
-lr: 0.1
+num_iter: 1
+eps: 0.01
 
 # log
 project: ContextualBandit-ICML
-group: Logistic-LMCTS
+group: Logistic-EpsGreedy

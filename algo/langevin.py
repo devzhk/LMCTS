@@ -2,6 +2,24 @@ import math
 import torch
 from torch.optim import Optimizer
 
+from torch import Tensor
+from typing import List
+
+
+def lmc(params: List[Tensor],
+        d_p_list: List[Tensor],
+        weight_decay: float,
+        lr: float):
+    r"""Functional API that performs Langevine MC algorithm computation.
+    """
+
+    for i, param in enumerate(params):
+        d_p = d_p_list[i]
+        if weight_decay != 0:
+            d_p = d_p.add(param, alpha=weight_decay)
+
+        param.add_(d_p, alpha=-lr)
+
 
 class LangevinMC(Optimizer):
     def __init__(self,
@@ -28,12 +46,16 @@ class LangevinMC(Optimizer):
             lr = self.lr
             sigma = group['sigma']
             weight_decay = group['weight_decay']
+            params_with_grad = []
+            d_p_list = []
             for p in group['params']:
                 if p.grad is not None:
-                    noise = math.sqrt(2 * lr * beta_inv) * sigma * \
+                    params_with_grad.append(p)
+                    # noise = 0
+                    noise = math.sqrt(2 * beta_inv / lr) * sigma * \
                         torch.randn(p.shape, device=p.device)
                     delta_p = p.grad
-                    if weight_decay != 0:
-                        delta_p = delta_p.add(p, alpha=weight_decay)
-                    delta_p = - lr * delta_p + noise
-                    p.add_(delta_p)
+                    delta_p = delta_p.add(noise, alpha=-1.0)
+                    d_p_list.append(delta_p)
+                    # p.add_(delta_p)
+            lmc(params_with_grad, d_p_list, weight_decay, lr)

@@ -5,7 +5,7 @@ dim_context: 20
 
 index: 0
 num_data: 1
-T: 30000
+T: 10000
 sigma: 0.0
 func: logistic
 
@@ -14,9 +14,9 @@ algo: UCBGLM
 model: linear
 loss: Logistic
 num_iter: 100
-nu: 0.1
+nu: 0.01
 reg: 0.0
-lr: 10.0
+lr: 0.02
 
 # log
 project: ContextualBandit-ICML

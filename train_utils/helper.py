@@ -3,10 +3,11 @@ import torch
 from torch.optim import SGD, Adam, LBFGS
 
 from models.classifier import LinearNet, FCN
+from models.linear import LinearModel
 from models.conv import CNNModel, MiniCNN
 from algo.langevin import LangevinMC
 from algo import LMCTS, LinTS, LinUCB, \
-    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy, UCBGLM
+    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy, UCBGLM, GLMTSL
 
 from train_utils.dataset import Collector
 
@@ -133,7 +134,8 @@ def construct_agent_sim(config, device):
     # Define model
     if 'model' in config:
         if config['model'] == 'linear':
-            model = LinearNet(1, dim_context)
+            # model = LinearNet(1, dim_context)
+            model = LinearModel(dim_context, 1)
             model = model.to(device)
         elif config['model'] == 'neural':
             model = FCN(1, dim_context,
@@ -225,6 +227,22 @@ def construct_agent_sim(config, device):
                        config['nu'],
                        lr=config['lr'],
                        reg=config['reg'],
+                       device=device)
+    elif algo_name == 'GLMTSL':
+        optimizer = SGD(model.parameters(), lr=config['lr'])
+        # optimizer = LBFGS(model.parameters(), max_iter=config['num_iter'])
+        # Define loss function
+        if 'loss' not in config:
+            criterion = construct_loss('L2', reduction='mean')
+        else:
+            criterion = construct_loss(config['loss'], reduction='mean')
+        collector = Collector()
+        agent = GLMTSL(num_arm, dim_context,
+                       model, optimizer,
+                       criterion, collector,
+                       config['nu'],
+                       reg=config['reg'],
+                       tao=config['tao'],
                        device=device)
     else:
         raise ValueError(f'{algo_name} is not supported. Please choose from '

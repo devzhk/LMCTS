@@ -693,13 +693,14 @@ class GLMTSL(_agent):
                  collector,  # context and reward collector
                  nu,  # exploration variance
                  batch_size=None,  # batchsize to update nn
-                 image=False,  # image dataset?
+                 tao=None,
                  reduce=None,  # reduce update frequency
                  reg=1.0,  # regularization weight, lambda in original paper
                  device='cpu',
                  name='NeuralTS'):
         super(GLMTSL, self).__init__(name)
-        self.image = image
+        self.tao = dim_context if tao is None else tao
+
         self.reduce = reduce
         self.num_arm = num_arm
         self.dim_context = dim_context
@@ -725,35 +726,37 @@ class GLMTSL(_agent):
     def clear(self):
         # self.model.init_weights()
         self.collector.clear()
-        self.DesignInv = (1 / self.reg) * \
-                         torch.eye(self.dim_context,
-                                   device=self.device)  # compute its inverse
+        self.Design = 0
         self.last_cxt = 0
 
     def choose_arm(self, context):
-        rewards = []
-        for i in range(self.num_arm):
-            self.model.zero_grad()
-            if self.image:
-                ri = self.model(context[i:i + 1, :, :, :])
+        if self.step <= self.tao:
+            return self.step % self.num_arm
+        else:
+            tol = 1e-12
+            if torch.linalg.det(self.DesignInv) < tol:
+                cov = self.DesignInv + 0.00001 * \
+                  torch.eye(self.dim_context, device=self.device)
             else:
-                ri = self.model(context[i])
-            ri.backward()
+                cov = self.DesignInv
+            model_theta = self.model.fc.weight.data
+            dist = MultivariateNormal(model_theta.view(-1), self.nu ** 2 * cov)
+            theta_tilda = dist.sample()
 
-            grad = torch.cat([p.grad.contiguous().view(-1).detach()
-                              for p in self.model.parameters()])
-
-            squared_sigma = self.reg * self.nu * grad * grad / self.Design
-            sigma = torch.sqrt(torch.sum(squared_sigma))
-
-            sample_r = ri + torch.randn(1, device=self.device) * sigma
-            rewards.append(sample_r.item())
-        arm_to_pull = np.argmax(rewards)
+            arm_to_pull = torch.argmax(context @ theta_tilda).item()
         return arm_to_pull
 
     def receive_reward(self, arm, context, reward):
         self.collector.collect_data(context, arm, reward)
         self.last_cxt = context
+        if self.step < self.tao:
+            self.Design += 0.25 * context.view(-1, 1) @ context.view(-1, 1).T
+        else:
+            if self.step == self.tao:
+                self.DesignInv = torch.linalg.inv(self.Design)
+            omega = self.DesignInv @ self.last_cxt
+            self.DesignInv = self.DesignInv - omega.view(-1, 1) @ omega.view(-1, 1).T / \
+                             (1 + torch.dot(omega, self.last_cxt))
 
     def update_model(self, num_iter):
         self.step += 1
@@ -794,13 +797,3 @@ class GLMTSL(_agent):
                     break
             assert not torch.isnan(loss), 'Loss is Nan!'
 
-        # update the design matrix
-        self.model.zero_grad()
-        if self.image:
-            re = self.model(self.last_cxt.unsqueeze(0))
-        else:
-            re = self.model(self.last_cxt)
-        re.backward()
-        grad = torch.cat([p.grad.contiguous().view(-1).detach()
-                          for p in self.model.parameters()])
-        self.Design += grad * grad
