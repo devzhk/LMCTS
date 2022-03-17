@@ -1,0 +1,22 @@
+data_name: shuttle
+version: 1
+
+# bandit
+num_arm: 7
+dim_context: 9
+T: 500
+
+# train
+algo: NeuralUCB
+model: neural
+act: ReLU
+layers: [100]
+lr: 0.01
+num_iter: 50
+batchsize: 128
+nu: 0.00001
+reg: 0.0001
+
+# log
+project: ContextualBandit-Profile
+group: Shuttle-NeuralUCB

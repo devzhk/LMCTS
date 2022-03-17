@@ -28,10 +28,10 @@ def construct_agent_cls(config, device):
     # Define model
     if 'model' in config:
         if config['model'] == 'linear':
-            model = LinearNet(1, dim_context)
+            model = LinearNet(1, dim_context * num_arm)
             model = model.to(device)
         elif config['model'] == 'neural':
-            model = FCN(1, dim_context,
+            model = FCN(1, dim_context * num_arm,
                         layers=config['layers'],
                         act=config['act'])
             model = model.to(device)
@@ -76,7 +76,7 @@ def construct_agent_cls(config, device):
         else:
             criterion = construct_loss(config['loss'], reduction='mean')
         collector = Collector()
-        agent = NeuralTS(num_arm, dim_context,
+        agent = NeuralTS(num_arm, dim_context * num_arm,
                          model, optimizer,
                          criterion, collector,
                          config['nu'], reg=config['reg'],
@@ -91,7 +91,7 @@ def construct_agent_cls(config, device):
         else:
             criterion = construct_loss(config['loss'], reduction='mean')
         collector = Collector()
-        agent = NeuralUCB(num_arm, dim_context,
+        agent = NeuralUCB(num_arm, dim_context * num_arm,
                           model, optimizer,
                           criterion, collector,
                           config['nu'], reg=config['reg'],

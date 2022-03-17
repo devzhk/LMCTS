@@ -21,6 +21,7 @@ except ImportError:
 
 def run(config, args):
     seed = random.randint(1, 10000)
+    # seed = 2050
     print(f'Random seed: {seed}')
     torch.manual_seed(seed)
     if args.log and wandb:
@@ -92,6 +93,7 @@ def run(config, args):
 
 
 if __name__ == '__main__':
+    torch.backends.cudnn.benchmark = True
     parser = ArgumentParser(description="basic paser for bandit problem")
     parser.add_argument('--config_path', type=str,
                         default='sweep/sweep-default.yaml')

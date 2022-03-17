@@ -1,0 +1,21 @@
+data_name: shuttle
+version: 1
+
+# bandit
+num_arm: 7
+dim_context: 9
+T: 500
+
+# train
+algo: LMCTS
+model: neural
+act: ReLU
+layers: [100]
+num_iter: 50
+batchsize: 128
+beta_inv: 0.0001
+lr: 0.01
+
+# log
+project: ContextualBandit-Profile
+group: Shuttle-LMCTS

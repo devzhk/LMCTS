@@ -1,0 +1,23 @@
+data_name: covertype
+version: 3
+num_data: 15000
+
+# bandit
+num_arm: 7
+dim_context: 54
+T: 8
+
+# train
+algo: NeuralEpsGreedy
+model: neural
+act: ReLU
+layers: [100]
+loss: L2
+num_iter: 50
+batchsize: 64
+eps: 0.4
+lr: 0.1
+
+# log
+project: ContextualBandit-Profile
+group: Covertype-NeuralEpsGreedy
