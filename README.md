@@ -5,7 +5,7 @@ This repository contains our pytorch implementation of Langevin Monte Carlo Thom
 
 ## How to run 
 ### Synthetic data
-To run bandit algorithms on synthetic data, use `run_simulation.py`. 
+To run bandit algorithms on synthetic data, use 
 
 
 ```bash
