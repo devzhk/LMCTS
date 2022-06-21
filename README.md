@@ -1,4 +1,6 @@
-# Langevin Monte Carlo Thompson Sampling (LMC-TS)
+# Langevin Monte Carlo for Contextual Bandits (ICML2022)
+
+This is repository contains our pytorch implementation of Langevin Monte Carlo Thompson Sampling (LMC-TS), proposed in the paper [Langevin Monte Carlo for Contextual Bandits]()
 
 
 ## How to run 
