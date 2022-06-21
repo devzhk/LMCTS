@@ -1,9 +1,9 @@
-# Langevin Monte Carlo Thompson Sampling
+# Langevin Monte Carlo Thompson Sampling (LMC-TS)
 
 
 ## How to run 
 ### Synthetic data
-To run bandit algorithm on synthetic data, use `run_simulation.py`. 
+To run bandit algorithms on synthetic data, use `run_simulation.py`. 
 
 
 ```bash
@@ -16,17 +16,15 @@ Configuration file examples:
 
 
 ### UCI datasets
-To run bandit algorithm on classification datasets, use
+To run bandit algorithm on UCI datasets, use
 ```bash
 python3 run_classifier.py --config_path configs/uci/shuttle-lmcts.yaml --repeat [number of experiments to repeat] --log
 ```
 ### CIFAR10
+To run bandit algorithm on CIFAR10 datasets, use
 ```bash
 python3 run_cifar.py --config_path configs/image/cifar10-lmcts.yaml
 ```
-
-
-## Customize configuration file
 
 
 ## Hyperparameter Sweep 
