@@ -20,8 +20,8 @@ except ImportError:
 
 
 def run(config, args):
-    # seed = random.randint(1, 10000)
-    seed = 2025
+    seed = random.randint(1, 10000)
+    # seed = 2025
     print(f'Random seed: {seed}')
     torch.manual_seed(seed)
     if args.log and wandb:

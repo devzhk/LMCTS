@@ -6,10 +6,9 @@ import random
 import torch
 import multiprocessing as mp
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10, MNIST
+from torchvision.datasets import CIFAR10
 import torchvision.transforms as transforms
 
-from train_utils.losses import construct_loss
 from train_utils.dataset import sample_data
 
 from train_utils.helper import construct_agent_image

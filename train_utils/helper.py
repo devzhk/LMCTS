@@ -1,16 +1,14 @@
 import numpy as np
-import torch
-from torch.optim import SGD, Adam, LBFGS
+from torch.optim import SGD
 
-from models.classifier import LinearNet, FCN
-from models.linear import LinearModel
-from models.conv import CNNModel, MiniCNN
-from algo.langevin import LangevinMC
 from algo import LMCTS, LinTS, LinUCB, \
-    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy, UCBGLM, GLMTSL
-
+    EpsGreedy, NeuralTS, NeuralUCB, NeuralEpsGreedy, \
+    UCBGLM, GLMTSL, NeuralLinUCB
+from algo.langevin import LangevinMC
+from models.classifier import LinearNet, FCN
+from models.conv import MiniCNN, MiniConv
+from models.linear import LinearModel
 from train_utils.dataset import Collector
-
 from .losses import construct_loss
 
 
@@ -275,8 +273,7 @@ def construct_agent_image(config, device):
                       decay_step=decay,
                       device=device)
     elif algo_name == 'NeuralTS':
-        model = MiniCNN(in_channel=3*num_arm).to(device)
-        model = model.to(device)
+        model = MiniCNN(in_channel=3 * num_arm).to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -295,7 +292,6 @@ def construct_agent_image(config, device):
                          device=device)
     elif algo_name == 'NeuralUCB':
         model = MiniCNN(in_channel=3 * num_arm).to(device)
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['reg'])
         # Define loss function
         if 'loss' not in config:
@@ -314,7 +310,6 @@ def construct_agent_image(config, device):
                           device=device)
     elif algo_name == 'NeuralEpsGreedy':
         model = MiniCNN(in_channel=3 * num_arm).to(device)
-        model = model.to(device)
         optimizer = SGD(model.parameters(), lr=config['lr'])
         # Define loss function
         if 'loss' not in config:
@@ -329,6 +324,24 @@ def construct_agent_image(config, device):
                                 batch_size=batchsize,
                                 reduce=5,
                                 device=device)
+    elif algo_name == 'NeuralLinUCB':
+        model = MiniConv(in_channel=3 * num_arm).to(device)
+        optimizer = SGD(model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
+        if 'loss' not in config:
+            criterion = construct_loss('L2', reduction='mean')
+        else:
+            criterion = construct_loss(config['loss'], reduction='mean')
+        collector = Collector()
+        agent = NeuralLinUCB(num_arm, dim_context,
+                             model, optimizer,
+                             criterion, collector,
+                             config['nu'],
+                             batch_size=batchsize,
+                             image=True,
+                             reduce=10,
+                             reg=config['reg'],
+                             device=device)
+
     else:
         raise ValueError(f'Invalid algo name {algo_name}')
     return agent

@@ -1,0 +1,21 @@
+data_name: CIFAR10
+
+# bandit
+num_arm: 10
+dim_context: 3072
+T: 100000
+
+# train
+algo: NeuralLinUCB
+model: neural
+loss: L2
+batchsize: 128
+num_iter: 50
+lr: 0.001
+reg: 0.01
+nu: 0.001
+weight_decay: 0.001
+
+# log
+project: ContextualBandit-Image
+group: Cifar10-NeuralLinUCB
