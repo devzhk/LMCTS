@@ -14,6 +14,14 @@ pip install -r requirements.txt
 ```
 
 ### Synthetic data
+#### Prepare Data
+1. Find the data here to reproduce our results. https://hkzdata.s3.us-west-2.amazonaws.com/LMC-TS/gaussian50-20-1-1.pt
+2. To generate synthetic data, run 
+```bash
+python3 data_generator.py --config configs/data-linear.yaml
+```
+
+
 Run bandit algorithms on simulated bandit problems
 ```bash
 python3 run_simulation.py --config_path configs/simulation/linear-LMCTS.yaml --repeat [number of experiments to repeat] 

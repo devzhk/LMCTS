@@ -3,4 +3,4 @@ dim_context: 20
 theta_norm: 1
 context_norm: 1
 T: 10000
-filename: data/gaussian10-20-1-1.pt
+filename: data/gaussian50-20-1-1.pt
